@@ -7,7 +7,7 @@ pub struct Registers {
     pub e: u8,
     pub f: u8,
     pub program_counter: u8,
-    pub stack_pointer: u8,
+    pub stack_pointer: u16,
 }
 
 pub trait Memory {
@@ -39,7 +39,7 @@ impl Default for Instruction {
     }
 }
 
-pub fn instructions() -> [Instruction; 5] {
+pub fn instructions() -> [Instruction; 50] {
     [
         Instruction::default(),
         Instruction {
@@ -56,7 +56,59 @@ pub fn instructions() -> [Instruction; 5] {
             mnemonic: "INC BC",
             time_increment: TimeIncrement { m: 1, t: 8 },
             execute: Box::new(|registers, memory| -> () {
-                registers.b = registers.b + 1;
+                registers.b += 1;
+            }),
+        },
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction::default(),
+        Instruction {
+            mnemonic: "LD SP,d16",
+            time_increment: TimeIncrement { m: 3, t: 12 },
+            execute: Box::new(|registers, memory| -> () {
+                registers.stack_pointer = memory.read_word(registers.program_counter);
+                registers.program_counter += 3;
             }),
         },
     ]

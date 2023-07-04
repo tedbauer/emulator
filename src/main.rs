@@ -4,6 +4,7 @@ use instructions::instructions;
 use instructions::Instruction;
 use instructions::Memory;
 use instructions::Registers;
+use std::fs;
 
 struct AMemory {}
 
@@ -27,12 +28,16 @@ fn main() {
 
     let instrs = instructions();
 
-    let program = [1, 4];
+    let bios: Vec<u8> = fs::read("roms/bios.rom").unwrap();
+    println!("{:?}", bios);
 
-    for i in program {
-        (instrs[i].execute)(&mut regs, &mem);
-        println!("Executing {}", instrs[i].pneumonic);
+    // for i in program {
+    loop {
+        println!(
+            "Opcode: {} | {}",
+            bios[regs.program_counter as usize], instrs[bios[regs.program_counter as usize] as usize].mnemonic
+        );
+        (instrs[bios[regs.program_counter as usize] as usize].execute)(&mut regs, &mem);
+        println!("{:?}", regs);
     }
-
-    println!("{:?}", regs);
 }
