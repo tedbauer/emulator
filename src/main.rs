@@ -34,10 +34,11 @@ fn main() {
     // for i in program {
     loop {
         println!(
-            "Opcode: {} | {}",
-            bios[regs.program_counter as usize], instrs[bios[regs.program_counter as usize] as usize].mnemonic
+            "Opcode: {} | {} | {:?}",
+            bios[regs.program_counter as usize],
+            instrs[bios[regs.program_counter as usize] as usize - 1].mnemonic,
+            regs
         );
-        (instrs[bios[regs.program_counter as usize] as usize].execute)(&mut regs, &mem);
-        println!("{:?}", regs);
+        (instrs[bios[regs.program_counter as usize] as usize - 1].execute)(&mut regs, &mem);
     }
 }
