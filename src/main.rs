@@ -36,9 +36,9 @@ fn main() {
         println!(
             "Opcode: {} | {} | {:?}",
             bios[regs.program_counter as usize],
-            instrs[bios[regs.program_counter as usize] as usize - 1].mnemonic,
+            instrs[bios[regs.program_counter as usize] as usize].mnemonic,
             regs
         );
-        (instrs[bios[regs.program_counter as usize] as usize - 1].execute)(&mut regs, &mem);
+        (instrs[bios[regs.program_counter as usize] as usize].execute)(&mut regs, &mem);
     }
 }
