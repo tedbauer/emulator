@@ -24,7 +24,7 @@ pub struct TimeIncrement {
 pub struct Instruction {
     pub mnemonic: &'static str,
     pub time_increment: TimeIncrement,
-    pub execute: Box<dyn Fn(&mut Registers, &Box<dyn MemoryAccess>) -> ()>,
+    pub execute: Box<dyn Fn(&mut Registers, &mut Box<dyn MemoryAccess>) -> ()>,
 }
 
 impl Default for Instruction {
@@ -265,8 +265,8 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD HL,d16",
             time_increment: TimeIncrement { m: 3, t: 12 },
             execute: Box::new(|registers, memory| -> () {
-                registers.h = (memory.read_word(registers.program_counter) & 0xFF) as u8;
-                registers.l = (memory.read_word(registers.program_counter) >> 8) as u8;
+                registers.h = memory.read_byte(registers.program_counter + 1) as u8;
+                registers.l = memory.read_byte(registers.program_counter + 2) as u8;
                 registers.program_counter += 3;
             }),
         },
@@ -358,7 +358,7 @@ pub fn instructions() -> [Instruction; 256] {
         },
         Instruction {
             mnemonic: "LD SP,d16",
-            time_increment: TimeIncrement { m: 0, t: 0 },
+            time_increment: TimeIncrement { m: 3, t: 12 },
             execute: Box::new(|registers, memory| -> () {
                 registers.stack_pointer = memory.read_word(registers.program_counter + 1);
 
@@ -367,8 +367,14 @@ pub fn instructions() -> [Instruction; 256] {
         },
         Instruction {
             mnemonic: "LD (HL-),A",
-            time_increment: TimeIncrement { m: 0, t: 0 },
+            time_increment: TimeIncrement { m: 1, t: 8 },
             execute: Box::new(|registers, memory| -> () {
+                let address = (registers.h as u16) + ((registers.l as u16) << 8);
+                memory.write_word(address, registers.a as u16);
+
+                let decremented_value = address - 1;
+                registers.h = decremented_value as u8;
+                registers.l = (decremented_value & 0x0F) as u8;
                 registers.program_counter += 1;
             }),
         },
@@ -1002,8 +1008,15 @@ pub fn instructions() -> [Instruction; 256] {
         },
         Instruction {
             mnemonic: "XOR A",
-            time_increment: TimeIncrement { m: 0, t: 0 },
+            time_increment: TimeIncrement { m: 1, t: 4 },
             execute: Box::new(|registers, memory| -> () {
+                registers.a = registers.a ^ registers.a;
+
+                registers.f = 0;
+                if (registers.a == 0) {
+                    registers.f += (1 << 7);
+                }
+
                 registers.program_counter += 1;
             }),
         },

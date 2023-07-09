@@ -9,7 +9,7 @@ use processor::Registers;
 use std::fs;
 
 fn main() {
-    let mem = Box::new(Memory::initialize()) as Box<dyn MemoryAccess>;
+    let mut mem = Box::new(Memory::initialize()) as Box<dyn MemoryAccess>;
     let mut regs = Registers::default();
 
     let instrs = instructions();
@@ -22,6 +22,6 @@ fn main() {
             instrs[mem.read_byte(regs.program_counter) as usize].mnemonic,
             regs
         );
-        (instrs[mem.read_byte(regs.program_counter) as usize].execute)(&mut regs, &mem);
+        (instrs[mem.read_byte(regs.program_counter) as usize].execute)(&mut regs, &mut mem);
     }
 }
