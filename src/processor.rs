@@ -1,3 +1,5 @@
+use crate::MemoryAccess;
+
 #[derive(Default, Debug)]
 pub struct Registers {
     pub a: u8,
@@ -13,13 +15,6 @@ pub struct Registers {
     pub stack_pointer: u16,
 }
 
-pub trait Memory {
-    fn read_byte(&self, addr: u8) -> u8;
-    fn read_word(&self, addr: u8) -> u16;
-    fn write_byte(&mut self, addr: u8);
-    fn write_word(&mut self, addr: u8);
-}
-
 #[derive(Default)]
 pub struct TimeIncrement {
     pub m: u8,
@@ -29,7 +24,7 @@ pub struct TimeIncrement {
 pub struct Instruction {
     pub mnemonic: &'static str,
     pub time_increment: TimeIncrement,
-    pub execute: Box<dyn Fn(&mut Registers, &Box<dyn Memory>) -> ()>,
+    pub execute: Box<dyn Fn(&mut Registers, &Box<dyn MemoryAccess>) -> ()>,
 }
 
 impl Default for Instruction {
@@ -359,1068 +354,1068 @@ pub fn instructions() -> [Instruction; 256] {
         Instruction {
             mnemonic: "JR NC,r8",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD SP,d16",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.stack_pointer = memory.read_word(registers.program_counter + 1);
+
                 registers.program_counter += 3;
-            })
+            }),
         },
         Instruction {
             mnemonic: "LD (HL-),A",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
-            })
+            }),
         },
         Instruction {
             mnemonic: "INC SP",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "INC (HL)",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "DEC (HL)",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD (HL),d8",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SCF",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "JR C,r8",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD HL,SP",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD A,(HL-)",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "DEC SP",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "INC A",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "DEC A",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
-            })
+            }),
         },
         Instruction {
             mnemonic: "LD A,d8",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 2;
-            })
+            }),
         },
         Instruction {
             mnemonic: "CCF",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {})
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD B,B",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD B,C",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD B,D",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD B,E",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD B,H",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD B,L",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD B,(HL)",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD B,A",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD C,B",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD C,C",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD C,D",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD C,E",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD C,H",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD C,L",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD C,(HL)",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD C,A",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD D,B",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD D,C",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD D,D",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD D,E",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD D,H",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD D,L",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD D,(HL)",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD D,A",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD E,B",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD E,C",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD E,D",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD E,E",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD E,H",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD E,L",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD E,(HL)",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD E,A",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD H,B",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD H,C",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD H,D",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD H,E",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD H,H",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD H,L",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD H,(HL)",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD H,A",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD L,B",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD L,C",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD L,D",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD L,E",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD L,H",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD L,L",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD L,(HL)",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD L,A",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD (HL),B",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD (HL),C",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD (HL),D",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD (HL),E",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD (HL),H",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD (HL),L",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "HALT",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD (HL),A",
-            time_increment: TimeIncrement {m: 0, t: 0},
+            time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
-            })
+            }),
         },
         Instruction {
             mnemonic: "LD A,B",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD A,C",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD A,D",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD A,E",
-            time_increment: TimeIncrement {m: 0, t: 0},
+            time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
-            })
+            }),
         },
         Instruction {
             mnemonic: "LD A,H",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD A,L",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD A,(HL)",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD A,A",
-            time_increment: TimeIncrement {m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD A,B",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD A,C",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD A,D",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD A,E",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD A,H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD A,L",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD A,(HL)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD A,A",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADC A,B",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADC A,C",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADC A,D",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADC A,E",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADC A,H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADC A,L",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADC A,(HL)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADC A,A",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SUB B",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SUB C",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SUB D",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SUB E",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SUB H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SUB L",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SUB (HL)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SUB A",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SBC A,B",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SBC A,C",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SBC A,D",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SBC A,E",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SBC A,H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SBC A,L",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SBC A,(HL)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SBC A,A",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "AND B",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "AND C",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "AND D",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "AND E",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "AND H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "AND L",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "AND (HL)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "AND A",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "XOR B",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "XOR C",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "XOR D",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "XOR E",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "XOR H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "XOR L",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "XOR (HL)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "XOR A",
-            time_increment: TimeIncrement { m: 0, t: 0},
+            time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
-            })
+            }),
         },
         Instruction {
             mnemonic: "OR B",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "OR C",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "OR D",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "OR E",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "OR H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "OR L",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "OR (HL)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "OR A",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CP B",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CP C",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CP D",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CP E",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CP H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CP L",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CP (HL)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RET NZ",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "POP BC",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "JP NZ,a16",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "JP a16",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CALL NZ,a16",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "PUSH BC",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD A,d8",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RST 00H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RET Z",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RET",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "JP Z,a16",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CALL Z,a16",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "PREFIX CB",
-            time_increment: TimeIncrement { m: 0, t: 0},
+            time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 2;
-            })
+            }),
         },
         Instruction {
             mnemonic: "ADC A,d8",
-            time_increment: TimeIncrement { m: 0, t: 0},
+            time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
-            })
+            }),
         },
         Instruction {
             mnemonic: "CALL a16",
-            time_increment: TimeIncrement { m: 0, t: 0},
+            time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 3;
-            })
+            }),
         },
         Instruction {
             mnemonic: "RST 08H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RET NC",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "POP DE",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "JP NC,a16",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "nothing",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CALL NC,a16",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "PUSH DE",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SUB d8",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RST 10H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RET C",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RETI",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "JP C,a16",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "nothing",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CALL C,a16",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "nothing",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "SBC A,d8",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RST 18H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ahhh idk",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LDH (a8),A",
-            time_increment: TimeIncrement { m: 0, t: 0},
+            time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 2;
-            })
+            }),
         },
         Instruction {
             mnemonic: "POP HL",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD (C),A",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {registers.program_counter += 1;})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {
+                registers.program_counter += 1;
+            }),
         },
         Instruction {
             mnemonic: "PUSH HL",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "AND d8",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RST 20H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "ADD SP,r8",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "JP (HL)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "nothing??!?!",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "nothing!!!",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD (a16),A",
-            time_increment: TimeIncrement { m: 0, t: 0},
+            time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 3;
-            })
+            }),
         },
         Instruction {
             mnemonic: "nothing",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "XOR d8",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RST 28H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LDH A,(a8)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "POP AF",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD A,(C)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "DI",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "nothing",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "PUSH AF",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () { unimplemented!() }),
         },
         Instruction {
             mnemonic: "OR d8",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RST 30H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD HL,SP+r8",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD SP,HL",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "LD A,(a16)",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "EI",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "nothing",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "nothing",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "hmmmm",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "RST 38H",
-            time_increment: TimeIncrement { m: 0, t: 0},
-            execute: Box::new(|registers, memory| -> () {})
+            time_increment: TimeIncrement { m: 0, t: 0 },
+            execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
             mnemonic: "CP d8",
-            time_increment: TimeIncrement { m: 0, t: 0},
+            time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 2;
-            })
+            }),
         },
-        Instruction::default()
+        Instruction::default(),
     ]
 }
-    
-
-
-
