@@ -1159,7 +1159,9 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "PREFIX CB",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
-                registers.program_counter += 2;
+                registers.program_counter += 1;
+
+                ((cb_instructions()[memory.read_byte(registers.program_counter) as usize]).execute)(registers, memory)
             }),
         },
         Instruction {
@@ -1431,4 +1433,1810 @@ pub fn instructions() -> [Instruction; 256] {
         },
         Instruction::default(),
     ]
+}
+
+pub fn cb_instructions() -> [Instruction; 256] {
+    [
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "193250215",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                println!("yoyoyoy");
+                registers.program_counter += 1;
+            })
+        },
+        Instruction {
+            mnemonic: "BIT 7,H",
+            time_increment: TimeIncrement {m: 2, t: 8},
+            execute: Box::new(|registers, memory| -> () {
+                println!("executing BIT 7,H");
+                let is_set = (registers.h & 0b01000000) > 0;
+                if is_set {
+                    registers.f = registers.f | 0b10000000;
+                }
+                // TODO: set other flags
+                registers.program_counter += 1;
+            })
+        },
+        Instruction {
+            mnemonic: "12348123",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                println!("hihihihi");
+                registers.program_counter += 1;
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+        Instruction {
+            mnemonic: "replaceme",
+            time_increment: TimeIncrement {m: 0, t: 0},
+            execute: Box::new(|registers, memory| -> () {
+                
+            })
+        },
+    ]
+
 }
