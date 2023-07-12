@@ -2310,7 +2310,7 @@ pub fn cb_instructions() -> [Instruction; 256] {
             mnemonic: "BIT 7,H",
             time_increment: TimeIncrement {m: 2, t: 8},
             execute: Box::new(|registers, memory| -> () {
-                println!("executing BIT 7,H");
+                println!("executing BIT 7,H.");
                 let is_set = (registers.h & 0b01000000) > 0;
                 if is_set {
                     registers.f = registers.f | 0b10000000;
