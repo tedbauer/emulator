@@ -15,6 +15,20 @@ pub struct Registers {
     pub stack_pointer: u16,
 }
 
+#[derive(Debug)]
+enum FlagBit {
+    Z, /* Zero Flag */
+    N, /* Subtract Flag */
+    H, /* Half Carry Flag */
+    C, /* Carry Flag */
+}
+
+impl Registers {
+    fn write_flag(&mut self, bit: FlagBit) {}
+
+    fn read_flag(&self, bit: FlagBit) {}
+}
+
 #[derive(Default)]
 pub struct TimeIncrement {
     pub m: u8,
@@ -48,8 +62,8 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD BC,d16",
             time_increment: TimeIncrement { m: 3, t: 12 },
             execute: Box::new(|registers, memory| -> () {
-                registers.b = (memory.read_word(registers.program_counter) & 0xf0) as u8;
-                registers.c = (memory.read_word(registers.program_counter) & 0x0f) as u8;
+                registers.b = (memory.read_word(registers.program_counter as u16) & 0xf0) as u8;
+                registers.c = (memory.read_word(registers.program_counter as u16) & 0x0f) as u8;
             }),
         },
         Instruction {
@@ -261,7 +275,7 @@ pub fn instructions() -> [Instruction; 256] {
                 // TODO: check if z flag is reset
                 registers.program_counter += 1;
                 registers.program_counter = ((registers.program_counter as i8)
-                    + (memory.read_byte(registers.program_counter) as i8))
+                    + (memory.read_byte(registers.program_counter as u16) as i8))
                     as u8;
                 registers.program_counter += 1;
             }),
@@ -270,8 +284,8 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD HL,d16",
             time_increment: TimeIncrement { m: 3, t: 12 },
             execute: Box::new(|registers, memory| -> () {
-                registers.h = memory.read_byte(registers.program_counter + 1) as u8;
-                registers.l = memory.read_byte(registers.program_counter + 2) as u8;
+                registers.h = memory.read_byte(registers.program_counter as u16 + 1) as u8;
+                registers.l = memory.read_byte(registers.program_counter as u16 + 2) as u8;
                 registers.program_counter += 3;
             }),
         },
@@ -365,7 +379,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD SP,d16",
             time_increment: TimeIncrement { m: 3, t: 12 },
             execute: Box::new(|registers, memory| -> () {
-                registers.stack_pointer = memory.read_word(registers.program_counter + 1);
+                registers.stack_pointer = memory.read_word(registers.program_counter as u16 + 1);
 
                 registers.program_counter += 3;
             }),
@@ -1166,7 +1180,7 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
 
-                ((cb_instructions()[memory.read_byte(registers.program_counter) as usize]).execute)(
+                ((cb_instructions()[memory.read_byte(registers.program_counter as u16) as usize]).execute)(
                     registers, memory,
                 )
             }),

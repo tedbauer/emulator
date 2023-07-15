@@ -1,19 +1,34 @@
 use std::fs;
+use std::fmt;
 
 pub trait MemoryAccess {
-    fn read_byte(&self, addr: u8) -> u8;
-    fn read_word(&self, addr: u8) -> u16;
+    fn read_byte(&self, addr: u16) -> u8;
+    fn read_word(&self, addr: u16) -> u16;
     fn write_byte(&mut self, addr: u16, value: u8);
     fn write_word(&mut self, addr: u16, value: u16);
 }
 
-#[derive(Debug)]
 pub struct Memory {
     pub bios: [u8; 256],
     rom: [u8; 16384],
 
     // TODO: split up regions
     the_rest: [u8; 48896],
+}
+
+impl fmt::Debug for dyn MemoryAccess {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for byte in 0..65_535 {
+            if byte == 0 {
+                write!(f, "-- BIOS --\n");
+
+            } else if byte == 256 {
+                write!(f, "-- ROM -- \n");
+            }
+            write!(f, "{:#04x} : {:#02x}\n", byte, self.read_byte(byte));
+        }
+        write!(f, "Done")
+    }
 }
 
 impl Memory {
@@ -29,7 +44,7 @@ impl Memory {
 }
 
 impl MemoryAccess for Memory {
-    fn read_byte(&self, addr: u8) -> u8 {
+    fn read_byte(&self, addr: u16) -> u8 {
         if usize::from(addr) < self.bios.len() {
             self.bios[addr as usize]
         } else if usize::from(addr) < self.bios.len() + self.rom.len() {
@@ -39,7 +54,7 @@ impl MemoryAccess for Memory {
         }
     }
 
-    fn read_word(&self, addr: u8) -> u16 {
+    fn read_word(&self, addr: u16) -> u16 {
         (self.read_byte(addr) as u16) + ((self.read_byte(addr + 1) as u16) << 8)
     }
 

@@ -18,10 +18,11 @@ fn main() {
     loop {
         println!(
             "Opcode: {} | {} | {:?}",
-            mem.read_byte(regs.program_counter),
-            instrs[mem.read_byte(regs.program_counter) as usize].mnemonic,
+            mem.read_byte(regs.program_counter as u16),
+            instrs[mem.read_byte(regs.program_counter as u16) as usize].mnemonic,
             regs
         );
-        (instrs[mem.read_byte(regs.program_counter) as usize].execute)(&mut regs, &mut mem);
+        (instrs[mem.read_byte(regs.program_counter as u16) as usize].execute)(&mut regs, &mut mem);
+        println!("{:?}", mem);
     }
 }
