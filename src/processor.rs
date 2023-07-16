@@ -23,8 +23,23 @@ enum FlagBit {
     C, /* Carry Flag */
 }
 
+fn write_bit(original_value: u8, bit: u8, value: bool) -> u8 {
+    if value {
+        original_value | (1 << bit)
+    } else {
+        original_value & !(1 << bit)
+    }
+}
+
 impl Registers {
-    fn write_flag(&mut self, bit: FlagBit) {}
+    fn write_flag(&mut self, bit: FlagBit, value: bool) {
+        match bit {
+            FlagBit::Z => self.f = write_bit(self.f, 7, value),
+            FlagBit::N => self.f = write_bit(self.f, 6, value),
+            FlagBit::H => self.f = write_bit(self.f, 5, value),
+            FlagBit::C => self.f = write_bit(self.f, 4, value),
+        }
+    }
 
     fn read_flag(&self, bit: FlagBit) {}
 }
@@ -1031,10 +1046,10 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 registers.a = registers.a ^ registers.a;
 
-                registers.f = 0;
-                if (registers.a == 0) {
-                    registers.f += (1 << 7);
-                }
+                registers.write_flag(FlagBit::Z, true);
+                registers.write_flag(FlagBit::N, false);
+                registers.write_flag(FlagBit::H, false);
+                registers.write_flag(FlagBit::C, false);
 
                 registers.program_counter += 1;
             }),

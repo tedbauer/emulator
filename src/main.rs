@@ -1,8 +1,10 @@
 mod memory;
 mod processor;
 
+use std::io::Write;
 use memory::Memory;
 use memory::MemoryAccess;
+use std::fs::File;
 use processor::instructions;
 use processor::Instruction;
 use processor::Registers;
@@ -23,6 +25,7 @@ fn main() {
             regs
         );
         (instrs[mem.read_byte(regs.program_counter as u16) as usize].execute)(&mut regs, &mut mem);
-        println!("{:?}", mem);
+        let memdump = format!("{:?}", mem);
+        fs::write("memdump.txt", memdump);
     }
 }

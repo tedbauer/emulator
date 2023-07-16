@@ -13,7 +13,9 @@ pub struct Memory {
     rom: [u8; 16384],
 
     // TODO: split up regions
-    the_rest: [u8; 48896],
+    the_rest: [u8; 49152],
+
+    bios_enabled: bool
 }
 
 impl fmt::Debug for dyn MemoryAccess {
@@ -38,19 +40,21 @@ impl Memory {
         Self {
             bios,
             rom: [0; 16384],
-            the_rest: [0; 48896],
+            the_rest: [42; 49152],
+
+            bios_enabled: true
         }
     }
 }
 
 impl MemoryAccess for Memory {
     fn read_byte(&self, addr: u16) -> u8 {
-        if usize::from(addr) < self.bios.len() {
+        if usize::from(addr) < self.bios.len() && self.bios_enabled {
             self.bios[addr as usize]
-        } else if usize::from(addr) < self.bios.len() + self.rom.len() {
+        } else if usize::from(addr) < self.rom.len() {
             self.rom[addr as usize]
         } else {
-            self.the_rest[addr as usize - self.rom.len() - self.bios.len()]
+            self.the_rest[addr as usize - self.rom.len()]
         }
     }
 
