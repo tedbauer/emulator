@@ -1,5 +1,5 @@
-use std::fs;
 use std::fmt;
+use std::fs;
 
 pub trait MemoryAccess {
     fn read_byte(&self, addr: u16) -> u8;
@@ -15,7 +15,7 @@ pub struct Memory {
     // TODO: split up regions
     the_rest: [u8; 49152],
 
-    bios_enabled: bool
+    bios_enabled: bool,
 }
 
 impl fmt::Debug for dyn MemoryAccess {
@@ -23,7 +23,6 @@ impl fmt::Debug for dyn MemoryAccess {
         for byte in 0..65_535 {
             if byte == 0 {
                 write!(f, "-- BIOS --\n");
-
             } else if byte == 256 {
                 write!(f, "-- ROM -- \n");
             }
@@ -42,7 +41,7 @@ impl Memory {
             rom: [0; 16384],
             the_rest: [42; 49152],
 
-            bios_enabled: true
+            bios_enabled: true,
         }
     }
 }
@@ -68,7 +67,7 @@ impl MemoryAccess for Memory {
         } else if usize::from(addr) < self.bios.len() + self.rom.len() {
             self.rom[addr as usize] = value;
         } else {
-            self.the_rest[addr as usize - self.rom.len() - self.bios.len()] = value;
+            self.the_rest[addr as usize - self.rom.len()] = value;
         }
     }
 

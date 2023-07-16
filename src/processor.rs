@@ -41,7 +41,20 @@ impl Registers {
         }
     }
 
-    fn read_flag(&self, bit: FlagBit) {}
+    fn read_flag(&self, bit: FlagBit) -> bool {
+        println!("flag reg: {}", &self.f);
+        match bit {
+            FlagBit::Z =>  {
+            
+                println!("{}", self.f & (1 << 7));
+            self.f & (1 << 7) == 0b10000000
+            
+            },
+            FlagBit::N => self.f & (1 << 6) == 0b01000000,
+            FlagBit::H => self.f & (1 << 5) == 0b00100000,
+            FlagBit::C => self.f & (1 << 4) == 0b00010000,
+        }
+    }
 }
 
 #[derive(Default)]
@@ -287,11 +300,17 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "JR NZ,r8",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
-                // TODO: check if z flag is reset
                 registers.program_counter += 1;
-                registers.program_counter = ((registers.program_counter as i8)
-                    + (memory.read_byte(registers.program_counter as u16) as i8))
-                    as u8;
+
+                if !registers.read_flag(FlagBit::Z) {
+                    println!("condition met");
+                    registers.program_counter = ((registers.program_counter as i8)
+                        + (memory.read_byte(registers.program_counter as u16) as i8))
+                        as u8;
+                } else {
+                    println!("condition not met :(");
+                }
+
                 registers.program_counter += 1;
             }),
         },
@@ -299,8 +318,8 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD HL,d16",
             time_increment: TimeIncrement { m: 3, t: 12 },
             execute: Box::new(|registers, memory| -> () {
-                registers.h = memory.read_byte(registers.program_counter as u16 + 1) as u8;
-                registers.l = memory.read_byte(registers.program_counter as u16 + 2) as u8;
+                registers.h = memory.read_byte(registers.program_counter as u16 + 2) as u8;
+                registers.l = memory.read_byte(registers.program_counter as u16 + 1) as u8;
                 registers.program_counter += 3;
             }),
         },
@@ -403,12 +422,14 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD (HL-),A",
             time_increment: TimeIncrement { m: 1, t: 8 },
             execute: Box::new(|registers, memory| -> () {
-                let address = (registers.h as u16) + ((registers.l as u16) << 8);
-                memory.write_word(address, registers.a as u16);
+                let address = ((registers.h as u16) << 8) + (registers.l as u16);
+                println!("address is: {}", address);
+                memory.write_byte(address, registers.a);
 
                 let decremented_value = address - 1;
-                registers.h = decremented_value as u8;
-                registers.l = (decremented_value & 0x0F) as u8;
+                println!("decremented address:{}", decremented_value);
+                registers.h = (decremented_value >> 8) as u8;
+                registers.l = decremented_value as u8;
                 registers.program_counter += 1;
             }),
         },
@@ -1046,7 +1067,8 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 registers.a = registers.a ^ registers.a;
 
-                registers.write_flag(FlagBit::Z, true);
+                // TODO: it seems like we are supposed to write this flag? 
+                // registers.write_flag(FlagBit::Z, true);
                 registers.write_flag(FlagBit::N, false);
                 registers.write_flag(FlagBit::H, false);
                 registers.write_flag(FlagBit::C, false);
@@ -1195,9 +1217,8 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
 
-                ((cb_instructions()[memory.read_byte(registers.program_counter as u16) as usize]).execute)(
-                    registers, memory,
-                )
+                ((cb_instructions()[memory.read_byte(registers.program_counter as u16) as usize])
+                    .execute)(registers, memory)
             }),
         },
         Instruction {
@@ -2101,11 +2122,13 @@ pub fn cb_instructions() -> [Instruction; 256] {
             time_increment: TimeIncrement { m: 2, t: 8 },
             execute: Box::new(|registers, memory| -> () {
                 println!("executing BIT 7,H.");
-                let is_set = (registers.h & 0b01000000) > 0;
-                if is_set {
-                    registers.f = registers.f | 0b10000000;
+                println!("{}", registers.h);
+                if registers.h & 0b01000000 == 0b01000000 {
+                    registers.write_flag(FlagBit::Z, true)
                 }
-                // TODO: set other flags
+                registers.write_flag(FlagBit::N, false);
+                registers.write_flag(FlagBit::H, true);
+
                 registers.program_counter += 1;
             }),
         },

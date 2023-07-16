@@ -1,14 +1,14 @@
 mod memory;
 mod processor;
 
-use std::io::Write;
 use memory::Memory;
 use memory::MemoryAccess;
-use std::fs::File;
 use processor::instructions;
 use processor::Instruction;
 use processor::Registers;
 use std::fs;
+use std::fs::File;
+use std::io::Write;
 
 fn main() {
     let mut mem = Box::new(Memory::initialize()) as Box<dyn MemoryAccess>;
