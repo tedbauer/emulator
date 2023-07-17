@@ -1,4 +1,5 @@
 use crate::MemoryAccess;
+use std::fs;
 
 #[derive(Default, Debug)]
 pub struct Registers {
@@ -42,14 +43,8 @@ impl Registers {
     }
 
     fn read_flag(&self, bit: FlagBit) -> bool {
-        println!("flag reg: {}", &self.f);
         match bit {
-            FlagBit::Z =>  {
-            
-                println!("{}", self.f & (1 << 7));
-            self.f & (1 << 7) == 0b10000000
-            
-            },
+            FlagBit::Z => self.f & (1 << 7) == 0b10000000,
             FlagBit::N => self.f & (1 << 6) == 0b01000000,
             FlagBit::H => self.f & (1 << 5) == 0b00100000,
             FlagBit::C => self.f & (1 << 4) == 0b00010000,
@@ -170,6 +165,14 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "INC C",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.c += 1;
+
+                if registers.c == 0 {
+                    registers.write_flag(FlagBit::Z, true);
+                }
+                registers.write_flag(FlagBit::N, false);
+                // TODO: write H if carry from bit 3? what
+
                 registers.program_counter += 1;
             }),
         },
@@ -184,7 +187,9 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD C,d8",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.c = memory.read_byte((registers.program_counter as u16) + 1);
                 registers.program_counter += 2;
+                let memdump = format!("{:?}", memory);
             }),
         },
         Instruction {
@@ -303,12 +308,9 @@ pub fn instructions() -> [Instruction; 256] {
                 registers.program_counter += 1;
 
                 if !registers.read_flag(FlagBit::Z) {
-                    println!("condition met");
                     registers.program_counter = ((registers.program_counter as i8)
                         + (memory.read_byte(registers.program_counter as u16) as i8))
                         as u8;
-                } else {
-                    println!("condition not met :(");
                 }
 
                 registers.program_counter += 1;
@@ -318,6 +320,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD HL,d16",
             time_increment: TimeIncrement { m: 3, t: 12 },
             execute: Box::new(|registers, memory| -> () {
+                println!("executing LD HL,d16");
                 registers.h = memory.read_byte(registers.program_counter as u16 + 2) as u8;
                 registers.l = memory.read_byte(registers.program_counter as u16 + 1) as u8;
                 registers.program_counter += 3;
@@ -423,11 +426,9 @@ pub fn instructions() -> [Instruction; 256] {
             time_increment: TimeIncrement { m: 1, t: 8 },
             execute: Box::new(|registers, memory| -> () {
                 let address = ((registers.h as u16) << 8) + (registers.l as u16);
-                println!("address is: {}", address);
                 memory.write_byte(address, registers.a);
 
                 let decremented_value = address - 1;
-                println!("decremented address:{}", decremented_value);
                 registers.h = (decremented_value >> 8) as u8;
                 registers.l = decremented_value as u8;
                 registers.program_counter += 1;
@@ -494,6 +495,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD A,d8",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.a = memory.read_byte((registers.program_counter as u16) + 1);
                 registers.program_counter += 2;
             }),
         },
@@ -781,7 +783,15 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD (HL),A",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                let address = registers.l as u16 + (((registers.h as u16) << 8) as u16);
+                memory.write_byte(address, registers.a);
+
+                println!("{:?}", registers);
+        let memdump = format!("{:?}", memory);
+        fs::write("memdump.txt", memdump);
+
                 registers.program_counter += 1;
+                panic!("done");
             }),
         },
         Instruction {
@@ -1067,7 +1077,7 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 registers.a = registers.a ^ registers.a;
 
-                // TODO: it seems like we are supposed to write this flag? 
+                // TODO: it seems like we are supposed to write this flag?
                 // registers.write_flag(FlagBit::Z, true);
                 registers.write_flag(FlagBit::N, false);
                 registers.write_flag(FlagBit::H, false);
@@ -1341,7 +1351,10 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD (C),A",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                let address = (registers.c as u16) + (0xFF00 as u16);
+                memory.write_byte(address as u16, registers.a);
                 registers.program_counter += 1;
+                let memdump = format!("{:?}", memory);
             }),
         },
         Instruction {
@@ -1414,7 +1427,9 @@ pub fn instructions() -> [Instruction; 256] {
         Instruction {
             mnemonic: "LD A,(C)",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {}),
+            execute: Box::new(|registers, memory| -> () {
+                println!("here.");
+            }),
         },
         Instruction {
             mnemonic: "DI",
@@ -2121,8 +2136,6 @@ pub fn cb_instructions() -> [Instruction; 256] {
             mnemonic: "BIT 7,H",
             time_increment: TimeIncrement { m: 2, t: 8 },
             execute: Box::new(|registers, memory| -> () {
-                println!("executing BIT 7,H.");
-                println!("{}", registers.h);
                 if registers.h & 0b01000000 == 0b01000000 {
                     registers.write_flag(FlagBit::Z, true)
                 }
