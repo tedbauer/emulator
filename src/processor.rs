@@ -785,13 +785,7 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 let address = registers.l as u16 + (((registers.h as u16) << 8) as u16);
                 memory.write_byte(address, registers.a);
-
-                println!("{:?}", registers);
-        let memdump = format!("{:?}", memory);
-        fs::write("memdump.txt", memdump);
-
                 registers.program_counter += 1;
-                panic!("done");
             }),
         },
         Instruction {
@@ -1339,7 +1333,14 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LDH (a8),A",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                let address = (memory.read_byte((registers.program_counter as u16) + 1) as u16) + (0xFF00 as u16);
+                memory.write_byte(address, registers.a);
+
+
+        let memdump = format!("{:?}", memory);
+        fs::write("memdump.txt", memdump);
                 registers.program_counter += 2;
+                panic!("done done");
             }),
         },
         Instruction {
