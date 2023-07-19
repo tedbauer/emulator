@@ -12,7 +12,7 @@ pub struct Registers {
     pub g: u8,
     pub h: u8,
     pub l: u8,
-    pub program_counter: u8,
+    pub program_counter: u16,
     pub stack_pointer: u16,
 }
 
@@ -30,6 +30,13 @@ fn write_bit(original_value: u8, bit: u8, value: bool) -> u8 {
     } else {
         original_value & !(1 << bit)
     }
+}
+
+fn stop_and_dump(regs: &mut Registers, mem: &mut Box<dyn MemoryAccess>) {
+    let memdump = format!("{:?}", mem);
+    fs::write("memdump.txt", memdump);
+    println!("{:?}", regs);
+    panic!("done");
 }
 
 impl Registers {
@@ -123,6 +130,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD B,d8",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.b = memory.read_byte(registers.program_counter + 1);
                 registers.program_counter += 2;
             }),
         },
@@ -189,7 +197,6 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 registers.c = memory.read_byte((registers.program_counter as u16) + 1);
                 registers.program_counter += 2;
-                let memdump = format!("{:?}", memory);
             }),
         },
         Instruction {
@@ -210,6 +217,8 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD DE,d16",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.d = memory.read_byte(registers.program_counter as u16 + 2);
+                registers.e = memory.read_byte(registers.program_counter as u16 + 1);
                 registers.program_counter += 3;
             }),
         },
@@ -224,6 +233,10 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "INC DE",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                let value = (registers.d as u16) << 8 + (registers.e as u16) + 1;
+                registers.d = (value >> 8) as u8;
+                registers.e = value as u8;
+
                 registers.program_counter += 1;
             }),
         },
@@ -273,6 +286,8 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD A,(DE)",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                let address = ((registers.d as u16) << 8) + (registers.e as u16);
+                registers.a = memory.read_byte(address);
                 registers.program_counter += 1;
             }),
         },
@@ -308,9 +323,9 @@ pub fn instructions() -> [Instruction; 256] {
                 registers.program_counter += 1;
 
                 if !registers.read_flag(FlagBit::Z) {
-                    registers.program_counter = ((registers.program_counter as i8)
-                        + (memory.read_byte(registers.program_counter as u16) as i8))
-                        as u8;
+                    registers.program_counter = ((registers.program_counter as i16)
+                        + ((memory.read_byte(registers.program_counter) as i8) as i16))
+                        as u16;
                 }
 
                 registers.program_counter += 1;
@@ -320,7 +335,6 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD HL,d16",
             time_increment: TimeIncrement { m: 3, t: 12 },
             execute: Box::new(|registers, memory| -> () {
-                println!("executing LD HL,d16");
                 registers.h = memory.read_byte(registers.program_counter as u16 + 2) as u8;
                 registers.l = memory.read_byte(registers.program_counter as u16 + 1) as u8;
                 registers.program_counter += 3;
@@ -582,7 +596,10 @@ pub fn instructions() -> [Instruction; 256] {
         Instruction {
             mnemonic: "LD C,A",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {}),
+            execute: Box::new(|registers, memory| -> () {
+                registers.c = registers.a;
+                registers.program_counter += 1;
+            }),
         },
         Instruction {
             mnemonic: "LD D,B",
@@ -807,6 +824,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD A,E",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.a = registers.e;
                 registers.program_counter += 1;
             }),
         },
@@ -1181,14 +1199,19 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
-            mnemonic: "PUSH BC",
+            mnemonic: "fix this",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
-            mnemonic: "ADD A,d8",
+            mnemonic: "PUSH BC",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {}),
+            execute: Box::new(|registers, memory| -> () {
+                let value = ((registers.b as u16) << 8) + (registers.c as u16);
+                memory.write_word(registers.stack_pointer, value);
+                registers.stack_pointer -= 2;
+                registers.program_counter += 1;
+            }),
         },
         Instruction {
             mnemonic: "RST 00H",
@@ -1234,9 +1257,11 @@ pub fn instructions() -> [Instruction; 256] {
         },
         Instruction {
             mnemonic: "CALL a16",
-            time_increment: TimeIncrement { m: 0, t: 0 },
+            time_increment: TimeIncrement { m: 3, t: 24 },
             execute: Box::new(|registers, memory| -> () {
-                registers.program_counter += 3;
+                memory.write_word(registers.stack_pointer, registers.program_counter + 1);
+                registers.stack_pointer -= 2;
+                registers.program_counter = memory.read_byte(registers.program_counter + 1) as u16;
             }),
         },
         Instruction {
@@ -1333,14 +1358,10 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LDH (a8),A",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
-                let address = (memory.read_byte((registers.program_counter as u16) + 1) as u16) + (0xFF00 as u16);
+                let address = (memory.read_byte((registers.program_counter as u16) + 1) as u16)
+                    + (0xFF00 as u16);
                 memory.write_byte(address, registers.a);
-
-
-        let memdump = format!("{:?}", memory);
-        fs::write("memdump.txt", memdump);
                 registers.program_counter += 2;
-                panic!("done done");
             }),
         },
         Instruction {
@@ -1355,7 +1376,6 @@ pub fn instructions() -> [Instruction; 256] {
                 let address = (registers.c as u16) + (0xFF00 as u16);
                 memory.write_byte(address as u16, registers.a);
                 registers.program_counter += 1;
-                let memdump = format!("{:?}", memory);
             }),
         },
         Instruction {
@@ -1501,6 +1521,15 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "CP d8",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                let value = memory.read_byte(registers.program_counter + 1);
+                if registers.a == value {
+                    registers.write_flag(FlagBit::Z, true);
+                }
+                registers.write_flag(FlagBit::N, true);
+                // registers.write_flag(FlagBit::H, true); todo: figure this one out
+                if registers.a < value {
+                    registers.write_flag(FlagBit::C, true);
+                }
                 registers.program_counter += 2;
             }),
         },

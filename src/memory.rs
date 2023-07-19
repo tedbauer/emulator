@@ -20,7 +20,7 @@ pub struct Memory {
 
 impl fmt::Debug for dyn MemoryAccess {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for byte in 0..65_535 {
+        for byte in 0..=65_535 {
             if byte == 0 {
                 write!(f, "-- BIOS --\n");
             } else if byte == 256 {

@@ -18,14 +18,14 @@ fn main() {
 
     // for i in program {
     loop {
-        // println!(
-        //     "Opcode: {} | {} | {:?}",
-        //     mem.read_byte(regs.program_counter as u16),
-        //     instrs[mem.read_byte(regs.program_counter as u16) as usize].mnemonic,
-        //     regs
-        // );
+        println!(
+            "PC: {} | Opcode: {} | {} | {:?}",
+            regs.program_counter,
+            mem.read_byte(regs.program_counter as u16),
+            instrs[mem.read_byte(regs.program_counter as u16) as usize].mnemonic,
+            regs
+        );
+        // println!("{}", regs.program_counter);
         (instrs[mem.read_byte(regs.program_counter as u16) as usize].execute)(&mut regs, &mut mem);
-        //let memdump = format!("{:?}", mem);
-        //fs::write("memdump.txt", memdump);
     }
 }
