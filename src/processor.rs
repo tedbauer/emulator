@@ -1179,14 +1179,17 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
-            mnemonic: "POP BC",
+            mnemonic: "fixme",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
-            mnemonic: "JP NZ,a16",
+            mnemonic: "POP BC",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {}),
+            execute: Box::new(|registers, memory| -> () {
+                registers.stack_pointer += 2;
+                registers.program_counter += 1;
+            }),
         },
         Instruction {
             mnemonic: "JP a16",
@@ -1224,14 +1227,18 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
-            mnemonic: "RET",
+            mnemonic: "fixme",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
-            mnemonic: "JP Z,a16",
+            mnemonic: "RET",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {}),
+            execute: Box::new(|registers, memory| -> () {
+                registers.stack_pointer += 2;
+                let address = memory.read_word(registers.stack_pointer);
+                registers.program_counter = address;
+            }),
         },
         Instruction {
             mnemonic: "CALL Z,a16",
@@ -1259,7 +1266,8 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "CALL a16",
             time_increment: TimeIncrement { m: 3, t: 24 },
             execute: Box::new(|registers, memory| -> () {
-                memory.write_word(registers.stack_pointer, registers.program_counter + 1);
+                println!("pc: {}", registers.program_counter);
+                memory.write_word(registers.stack_pointer, registers.program_counter + 3);
                 registers.stack_pointer -= 2;
                 registers.program_counter = memory.read_byte(registers.program_counter + 1) as u16;
             }),
@@ -1625,9 +1633,12 @@ pub fn cb_instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
-            mnemonic: "replaceme",
+            mnemonic: "RL C",
             time_increment: TimeIncrement { m: 0, t: 0 },
-            execute: Box::new(|registers, memory| -> () {}),
+            execute: Box::new(|registers, memory| -> () {
+                println!("Executing RL C");
+                registers.program_counter += 1;
+            }),
         },
         Instruction {
             mnemonic: "replaceme",
