@@ -18,10 +18,10 @@ pub struct Registers {
 
 #[derive(Debug)]
 enum FlagBit {
-    Z, /* Zero Flag */
-    N, /* Subtract Flag */
-    H, /* Half Carry Flag */
-    C, /* Carry Flag */
+    Z, // Zero Flag
+    N, // Subtract Flag
+    H, // Half Carry Flag
+    C, // Carry Flag
 }
 
 fn write_bit(original_value: u8, bit: u8, value: bool) -> u8 {
@@ -81,6 +81,28 @@ impl Default for Instruction {
     }
 }
 
+/// Concatenates together two eight-bit numbers into a sixteen bit number.
+fn concatenate(a: u8, b: u8) -> u16 {
+    ((a as u16) << 8) + (b as u16)
+}
+
+/// Grabs the eight most significant bits of `n`.
+fn upper_eight_bits(n: u16) -> u8 {
+    (n >> 8) as u8
+}
+
+/// Grabs the eight least significant bits of `n`.
+fn lower_eight_bits(n: u16) -> u8 {
+    n as u8
+}
+
+fn read_bit(n: u8, bit: u8) -> bool {
+    if (bit > 7) {
+        panic!("bit > 7");
+    }
+    n & (1 << bit) == (1 << bit)
+}
+
 pub fn instructions() -> [Instruction; 256] {
     [
         Instruction {
@@ -100,8 +122,6 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD (BC),A",
             time_increment: TimeIncrement { m: 1, t: 8 },
             execute: Box::new(|registers, memory| -> () {
-                registers.b = registers.a & 0xFF;
-                //registers.c = registers.a >> 8;
                 registers.program_counter += 1;
             }),
         },
@@ -109,6 +129,9 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "INC BC",
             time_increment: TimeIncrement { m: 1, t: 8 },
             execute: Box::new(|registers, memory| -> () {
+                let value = concatenate(registers.b, registers.c) + 1;
+                registers.b = upper_eight_bits(value);
+                registers.c = lower_eight_bits(value);
                 registers.b += 1;
             }),
         },
@@ -124,6 +147,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "DEC B",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.b -= 1;
                 registers.program_counter += 1;
             }),
         },
@@ -139,6 +163,13 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "RLCA",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.write_flag(FlagBit::N, false);
+                registers.write_flag(FlagBit::H, false);
+                registers.write_flag(FlagBit::C, read_bit(registers.a, 7));
+                registers.a = registers.a.rotate_left(1);
+                if (registers.a == 0) {
+                    registers.write_flag(FlagBit::Z, true);
+                }
                 registers.program_counter += 1;
             }),
         },
@@ -146,6 +177,11 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD (a16),SP",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                let address = concatenate(
+                    memory.read_byte(registers.program_counter + 1),
+                    memory.read_byte(registers.program_counter + 2),
+                );
+                memory.write_word(address, registers.stack_pointer);
                 registers.program_counter += 1;
             }),
         },
@@ -153,6 +189,10 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "ADD HL,BC",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                let result =
+                    concatenate(registers.h, registers.l) + concatenate(registers.b, registers.c);
+                registers.h = upper_eight_bits(result);
+                registers.l = lower_eight_bits(result);
                 registers.program_counter += 1;
             }),
         },
@@ -160,11 +200,13 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD A,(BC)",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                let address = concatenate(registers.b, registers.c);
+                registers.a = memory.read_byte(address);
                 registers.program_counter += 1;
             }),
         },
         Instruction {
-            mnemonic: "DEC BC,",
+            mnemonic: "replaceme",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
@@ -189,6 +231,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "DEC C",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.c -= 1;
                 registers.program_counter += 1;
             }),
         },
