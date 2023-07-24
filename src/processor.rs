@@ -21,15 +21,15 @@ impl<'a> Cpu<'a> {
     }
 
     pub fn step(&mut self) -> TimeIncrement {
-        println!(
-            "PC: {} | Opcode: {} | {} | {:?}",
-            self.registers.program_counter,
-            self.memory.read_byte(self.registers.program_counter as u16),
-            self.instruction_bank
-                [self.memory.read_byte(self.registers.program_counter as u16) as usize]
-                .mnemonic,
-            self.registers
-        );
+        // println!(
+        //     "PC: {} | Opcode: {} | {} | {:?}",
+        //     self.registers.program_counter,
+        //     self.memory.read_byte(self.registers.program_counter as u16),
+        //     self.instruction_bank
+        //         [self.memory.read_byte(self.registers.program_counter as u16) as usize]
+        //         .mnemonic,
+        //     self.registers
+        // );
 
         let opcode = self.memory.read_byte(self.registers.program_counter);
         let instruction = &self.instruction_bank[opcode as usize];
@@ -206,7 +206,6 @@ pub fn instructions() -> [Instruction; 256] {
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
                 registers.b -= 1;
-                println!("b is: {}", registers.b);
                 registers.write_flag(FlagBit::Z, registers.b == 0);
                 registers.write_flag(FlagBit::N, true);
                 // TODO: no borrow from bit 4
@@ -854,7 +853,6 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD H,A",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
-                println!("made it.");
                 registers.program_counter += 1;
             }),
         },
@@ -1410,7 +1408,6 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "CALL a16",
             time_increment: TimeIncrement { m: 3, t: 24 },
             execute: Box::new(|registers, memory| -> () {
-                println!("pc: {}", registers.program_counter);
                 memory.write_word(registers.stack_pointer, registers.program_counter + 3);
                 registers.stack_pointer -= 2;
                 registers.program_counter = memory.read_byte(registers.program_counter + 1) as u16;
@@ -1783,7 +1780,7 @@ pub fn cb_instructions() -> [Instruction; 256] {
             mnemonic: "RL C",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
-                println!("Executing RL C");
+                // println!("Executing RL C");
                 registers.write_flag(FlagBit::C, read_bit(registers.c, 7));
                 registers.c = registers.c.rotate_left(1);
                 registers.write_flag(FlagBit::Z, registers.c == 0);
