@@ -10,7 +10,11 @@ pub struct Gpu {
 
 impl Gpu {
     pub fn initialize(memory: &mut Box<dyn MemoryAccess>) -> Self {
-        Self { scan_mode: ScanMode::AccessOam, mode_clock: 0, line: 0 }
+        Self {
+            scan_mode: ScanMode::AccessOam,
+            mode_clock: 0,
+            line: 0,
+        }
     }
 
     pub fn step(&mut self, time_increment: TimeIncrement) {
@@ -24,14 +28,14 @@ impl Gpu {
                     self.scan_mode = ScanMode::AccessVram;
                     self.mode_clock = 0;
                 }
-            },
+            }
             ScanMode::AccessVram => {
                 if self.mode_clock >= 172 {
                     self.scan_mode = ScanMode::VerticalBlank;
                     self.mode_clock = 0;
                     self.render_scan();
                 }
-            },
+            }
             ScanMode::HorizontalBlank => {
                 if self.mode_clock >= 204 {
                     self.line += 1;
@@ -44,7 +48,7 @@ impl Gpu {
                         self.scan_mode = ScanMode::AccessOam;
                     }
                 }
-            },
+            }
             ScanMode::VerticalBlank => {
                 if self.mode_clock >= 4560 {
                     self.mode_clock = 0;
@@ -63,5 +67,5 @@ enum ScanMode {
     AccessOam,
     AccessVram,
     HorizontalBlank,
-    VerticalBlank
+    VerticalBlank,
 }
