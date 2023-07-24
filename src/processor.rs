@@ -1,6 +1,42 @@
+use crate::Gpu;
 use crate::MemoryAccess;
 use std::fmt;
 use std::fs;
+
+pub struct Cpu<'a> {
+    memory: &'a mut Box<dyn MemoryAccess>,
+    registers: Registers,
+    instruction_bank: [Instruction; 256],
+    cb_instruction_bank: [Instruction; 256],
+}
+
+impl<'a> Cpu<'a> {
+    pub fn initialize(memory: &'a mut Box<dyn MemoryAccess>, gpu: &Gpu) -> Self {
+        Self {
+            memory,
+            registers: Registers::default(),
+            instruction_bank: instructions(),
+            cb_instruction_bank: cb_instructions(),
+        }
+    }
+
+    pub fn step(&mut self) -> TimeIncrement {
+        println!(
+            "PC: {} | Opcode: {} | {} | {:?}",
+            self.registers.program_counter,
+            self.memory.read_byte(self.registers.program_counter as u16),
+            self.instruction_bank
+                [self.memory.read_byte(self.registers.program_counter as u16) as usize]
+                .mnemonic,
+            self.registers
+        );
+
+        let opcode = self.memory.read_byte(self.registers.program_counter);
+        let instruction = &self.instruction_bank[opcode as usize];
+        (instruction.execute)(&mut self.registers, self.memory);
+        instruction.time_increment.clone()
+    }
+}
 
 #[derive(Default)]
 pub struct Registers {
@@ -81,7 +117,7 @@ impl Registers {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct TimeIncrement {
     pub m: u8,
     pub t: u8,
@@ -524,7 +560,6 @@ pub fn instructions() -> [Instruction; 256] {
             time_increment: TimeIncrement { m: 3, t: 12 },
             execute: Box::new(|registers, memory| -> () {
                 registers.stack_pointer = memory.read_word(registers.program_counter as u16 + 1);
-
                 registers.program_counter += 3;
             }),
         },
