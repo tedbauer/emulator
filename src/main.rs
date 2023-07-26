@@ -55,26 +55,30 @@ fn main() {
         }
 
         let mut pixels = Vec::new();
-        let framebuffer = gpu.step(cpu.step()).unwrap();
-        for (index, pixel) in framebuffer.0.iter().enumerate() {
-            pixels.push(pixel.r);
-            pixels.push(pixel.g);
-            pixels.push(pixel.b);
-            pixels.push(pixel.a);
+        match gpu.step(cpu.step()) {
+            Some(framebuffer) => {
+                for (index, pixel) in framebuffer.0.iter().enumerate() {
+                    pixels.push(pixel.r);
+                    pixels.push(pixel.g);
+                    pixels.push(pixel.b);
+                    pixels.push(pixel.a);
+                }
+
+                let surface = Surface::from_data(
+                    pixels.as_mut_slice(),
+                    160,
+                    144,
+                    160 * 4,
+                    texture_creator.default_pixel_format(),
+                )
+                .unwrap();
+
+                let texture = Texture::from_surface(&surface, &texture_creator).unwrap();
+                canvas.clear();
+                canvas.copy(&texture, None, None).unwrap();
+                canvas.present();
+            }
+            None => {}
         }
-
-        let surface = Surface::from_data(
-            pixels.as_mut_slice(),
-            160,
-            144,
-            160 * 4,
-            texture_creator.default_pixel_format(),
-        )
-        .unwrap();
-
-        let texture = Texture::from_surface(&surface, &texture_creator).unwrap();
-        canvas.clear();
-        canvas.copy(&texture, None, None).unwrap();
-        canvas.present();
     }
 }

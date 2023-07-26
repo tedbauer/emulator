@@ -43,24 +43,11 @@ impl Gpu {
             scan_mode: ScanMode::AccessOam,
             mode_clock: 0,
             line: 0,
-            framebuffer: Framebuffer(
-                [Rgba {
-                    r: 0,
-                    g: 255,
-                    b: 0,
-                    a: 255,
-                }; 160 * 144]
-                    .to_vec(),
-            ),
+            framebuffer: gen_random_framebuffer(),
         }
     }
 
     pub fn step(&mut self, time_increment: TimeIncrement) -> Option<Framebuffer> {
-        return Some(gen_random_framebuffer());
-        // return Some(self.framebuffer.clone());
-        println!("{:?}", self.scan_mode);
-        println!("{}", self.mode_clock);
-
         self.mode_clock += (time_increment.t as usize);
         match self.scan_mode {
             ScanMode::AccessOam => {
@@ -72,7 +59,7 @@ impl Gpu {
             }
             ScanMode::AccessVram => {
                 if self.mode_clock >= 172 {
-                    self.scan_mode = ScanMode::VerticalBlank;
+                    self.scan_mode = ScanMode::HorizontalBlank;
                     self.mode_clock = 0;
                     self.render_scan();
                 }
@@ -103,7 +90,9 @@ impl Gpu {
         }
     }
 
-    fn render_scan(&self) {}
+    fn render_scan(&mut self) {
+        self.framebuffer = gen_random_framebuffer()
+    }
 }
 
 #[derive(Debug)]
