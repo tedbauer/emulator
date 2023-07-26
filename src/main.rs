@@ -36,7 +36,7 @@ fn main() {
     let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
     let texture_creator = canvas.texture_creator();
 
-    let mut memory = RefCell::new(Box::new(Memory::initialize()) as Box<dyn MemoryAccess>);
+    let mut memory = Box::new(Memory::initialize()) as Box<dyn MemoryAccess>;
     let mut gpu = Gpu::initialize();
     let mut cpu = Cpu::initialize();
 
@@ -56,8 +56,8 @@ fn main() {
         }
 
         let mut pixels = Vec::new();
-        let time_increment = cpu.step(&mut memory.borrow_mut());
-        match gpu.step(time_increment, &mut memory.borrow_mut()) {
+        let time_increment = cpu.step(&mut memory);
+        match gpu.step(time_increment, &mut memory) {
             Some(framebuffer) => {
                 for (index, pixel) in framebuffer.0.iter().enumerate() {
                     pixels.push(pixel.r);
