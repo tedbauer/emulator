@@ -3,6 +3,10 @@
 
 Gameboy emulator.
 
+```
+brew install sdl2
+```
+
 See hexdump of BIOS:
 ```sh
 cat roms/bios.rom | hexdump

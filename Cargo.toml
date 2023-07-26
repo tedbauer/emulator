@@ -7,9 +7,4 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.5"
-# sdl2 = "0.35"
-
-[dependencies.sdl2]
-version = "0.35"
-default-features = false
-features = ["gfx"]
+sdl2 = "0.35"
