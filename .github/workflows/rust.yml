@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: sudo apt-get install libsdl2-2.0-0
     - name: Build
       run: cargo build --verbose
     - name: Run tests
