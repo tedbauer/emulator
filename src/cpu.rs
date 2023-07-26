@@ -3,37 +3,34 @@ use crate::MemoryAccess;
 use std::fmt;
 use std::fs;
 
-pub struct Cpu<'a> {
-    memory: &'a mut Box<dyn MemoryAccess>,
+pub struct Cpu {
     registers: Registers,
     instruction_bank: [Instruction; 256],
     cb_instruction_bank: [Instruction; 256],
 }
 
-impl<'a> Cpu<'a> {
-    pub fn initialize(memory: &'a mut Box<dyn MemoryAccess>, gpu: &Gpu) -> Self {
+impl Cpu {
+    pub fn initialize() -> Self {
         Self {
-            memory,
             registers: Registers::default(),
             instruction_bank: instructions(),
             cb_instruction_bank: cb_instructions(),
         }
     }
 
-    pub fn step(&mut self) -> TimeIncrement {
-        // println!(
-        //     "PC: {} | Opcode: {} | {} | {:?}",
-        //     self.registers.program_counter,
-        //     self.memory.read_byte(self.registers.program_counter as u16),
-        //     self.instruction_bank
-        //         [self.memory.read_byte(self.registers.program_counter as u16) as usize]
-        //         .mnemonic,
-        //     self.registers
-        // );
+    pub fn step<'a>(&mut self, memory: &'a mut Box<dyn MemoryAccess>) -> TimeIncrement {
+        println!(
+            "PC: {} | Opcode: {} | {} | {:?}",
+            self.registers.program_counter,
+            memory.read_byte(self.registers.program_counter as u16),
+            self.instruction_bank[memory.read_byte(self.registers.program_counter as u16) as usize]
+                .mnemonic,
+            self.registers
+        );
 
-        let opcode = self.memory.read_byte(self.registers.program_counter);
+        let opcode = memory.read_byte(self.registers.program_counter);
         let instruction = &self.instruction_bank[opcode as usize];
-        (instruction.execute)(&mut self.registers, self.memory);
+        (instruction.execute)(&mut self.registers, memory);
         instruction.time_increment.clone()
     }
 }

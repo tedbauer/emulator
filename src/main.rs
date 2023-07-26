@@ -1,13 +1,13 @@
+mod cpu;
 mod gpu;
 mod memory;
-mod processor;
 
+use cpu::instructions;
+use cpu::Cpu;
+use cpu::Instruction;
 use gpu::Gpu;
 use memory::Memory;
 use memory::MemoryAccess;
-use processor::instructions;
-use processor::Cpu;
-use processor::Instruction;
 use rand::Rng;
 use sdl2;
 use sdl2::event::Event;
@@ -19,6 +19,7 @@ use sdl2::render::Canvas;
 use sdl2::render::Texture;
 use sdl2::surface::Surface;
 use sdl2::video::Window;
+use std::cell::{RefCell, RefMut};
 use std::fs;
 use std::fs::File;
 use std::io::Write;
@@ -35,9 +36,9 @@ fn main() {
     let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
     let texture_creator = canvas.texture_creator();
 
-    let mut memory = Box::new(Memory::initialize()) as Box<dyn MemoryAccess>;
-    let mut gpu = Gpu::initialize(&mut memory);
-    let mut cpu = Cpu::initialize(&mut memory, &gpu);
+    let mut memory = RefCell::new(Box::new(Memory::initialize()) as Box<dyn MemoryAccess>);
+    let mut gpu = Gpu::initialize();
+    let mut cpu = Cpu::initialize();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     'running: loop {
@@ -55,7 +56,8 @@ fn main() {
         }
 
         let mut pixels = Vec::new();
-        match gpu.step(cpu.step()) {
+        let time_increment = cpu.step(&mut memory.borrow_mut());
+        match gpu.step(time_increment, &mut memory.borrow_mut()) {
             Some(framebuffer) => {
                 for (index, pixel) in framebuffer.0.iter().enumerate() {
                     pixels.push(pixel.r);
