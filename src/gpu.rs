@@ -42,7 +42,124 @@ fn apply_memory_map(gpu: &Gpu, memory: &mut Box<dyn MemoryAccess>) {
     memory.write_byte(0xFF44, gpu.line)
 }
 
-fn render_scan(gpu: &mut Gpu, memory: &Box<dyn MemoryAccess>) {}
+fn get_pixel(n1: u8, n2: u8, bit: u8) -> bool {
+    (((n1 >> bit) as u8) + (((n2 >> bit) as u8) << 1)) > 0
+}
+
+fn push_row(num: u8, buffer: &mut Vec<Rgba>) {
+    println!("num: {:#02x}", num);
+    println!("---");
+    for i in 0..8 {
+        if ((1 << i) & num) > 0 {
+            println!("1");
+            buffer.push(Rgba {
+                r: 0, g: 0, b: 0, a: 255
+            });
+        } else {
+            println!("0");
+            buffer.push(Rgba {
+                r: 255, g: 255, b: 255, a: 255
+            });
+        }
+    }
+    println!("---");
+}
+
+fn render_scan(gpu: &mut Gpu, memory: &Box<dyn MemoryAccess>) {
+    gpu.framebuffer.0 = Vec::new();
+
+    for _ in 0..11936 {
+        gpu.framebuffer.0.push(Rgba {
+            r: 255,
+            g: 0,
+            b: 255,
+            a: 255,
+        });
+    }
+
+    push_row(memory.read_byte(0x7f49), &mut gpu.framebuffer.0);
+    for _ in 0..152 {
+        gpu.framebuffer.0.push(Rgba {
+            r: 255,
+            g: 255,
+            b: 0,
+            a: 255,
+        });
+    }
+    push_row(memory.read_byte(0x7f4a), &mut gpu.framebuffer.0);
+    for _ in 0..152 {
+        gpu.framebuffer.0.push(Rgba {
+            r: 255,
+            g: 255,
+            b: 0,
+            a: 255,
+        });
+    }
+    push_row(memory.read_byte(0x7f4b), &mut gpu.framebuffer.0);
+    for _ in 0..152 {
+        gpu.framebuffer.0.push(Rgba {
+            r: 255,
+            g: 255,
+            b: 0,
+            a: 255,
+        });
+    }
+    push_row(memory.read_byte(0x7f4c), &mut gpu.framebuffer.0);
+    for _ in 0..152 {
+        gpu.framebuffer.0.push(Rgba {
+            r: 255,
+            g: 255,
+            b: 0,
+            a: 255,
+        });
+    }
+    push_row(memory.read_byte(0x7f4d), &mut gpu.framebuffer.0);
+    for _ in 0..152 {
+        gpu.framebuffer.0.push(Rgba {
+            r: 255,
+            g: 255,
+            b: 0,
+            a: 255,
+        });
+    }
+    push_row(memory.read_byte(0x7f4e), &mut gpu.framebuffer.0);
+    for _ in 0..152 {
+        gpu.framebuffer.0.push(Rgba {
+            r: 255,
+            g: 255,
+            b: 0,
+            a: 255,
+        });
+    }
+    push_row(memory.read_byte(0x7f4f), &mut gpu.framebuffer.0);
+    for _ in 0..152 {
+        gpu.framebuffer.0.push(Rgba {
+            r: 255,
+            g: 255,
+            b: 0,
+            a: 255,
+        });
+    }
+    push_row(memory.read_byte(0x7f50), &mut gpu.framebuffer.0);
+    for _ in 0..152 {
+        gpu.framebuffer.0.push(Rgba {
+            r: 255,
+            g: 255,
+            b: 0,
+            a: 255,
+        });
+    }
+    push_row(memory.read_byte(0x7f51), &mut gpu.framebuffer.0);
+    
+    for _ in 0..(11936 - 152*3) {
+        gpu.framebuffer.0.push(Rgba {
+            r: 255,
+            g: 0,
+            b: 255,
+            a: 255,
+        });
+    }
+}
 
 fn step_mode(
     gpu: &mut Gpu,

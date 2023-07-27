@@ -29,7 +29,7 @@ fn main() {
     let video_subsystem = sdl_context.video().unwrap();
 
     let window = video_subsystem
-        .window("emulator", 160, 144)
+        .window("emulator", 640, 288*2)
         .build()
         .unwrap();
 
@@ -80,7 +80,7 @@ fn main() {
                 canvas.copy(&texture, None, None).unwrap();
                 canvas.present();
             }
-            None => {}
+            None => { }
         }
     }
 }
