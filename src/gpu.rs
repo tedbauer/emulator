@@ -46,119 +46,61 @@ fn get_pixel(n1: u8, n2: u8, bit: u8) -> bool {
     (((n1 >> bit) as u8) + (((n2 >> bit) as u8) << 1)) > 0
 }
 
-fn push_row(num: u8, buffer: &mut Vec<Rgba>) {
-    println!("num: {:#02x}", num);
-    println!("---");
-    for i in 0..8 {
-        if ((1 << i) & num) > 0 {
-            println!("1");
-            buffer.push(Rgba {
-                r: 0, g: 0, b: 0, a: 255
-            });
-        } else {
-            println!("0");
-            buffer.push(Rgba {
-                r: 255, g: 255, b: 255, a: 255
-            });
+fn read_tile_map(
+    memory: &Box<dyn MemoryAccess>,
+    tile_x: u8,
+    tile_y: u8,
+    pixel_x: u8,
+    pixel_y: u8,
+) -> Rgba {
+    let tile_map_index = memory
+        .read_byte(((tile_x as u16) * (tile_y as u16)) as u16 + 0x9800);
+    let tile_set_index = (tile_map_index as u16) * 16 + ((pixel_y as u16) * 2) + 0x8000;
+    println!("reading tileset index: {:#02x}", tile_set_index);
+    let tile = memory.read_byte(tile_set_index as u16);
+
+    if ((1 << pixel_x) & tile) > 0 {
+        Rgba {
+            r: 0,
+            g: 0,
+            b: 0,
+            a: 0,
+        }
+    } else {
+        Rgba {
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 255,
         }
     }
-    println!("---");
 }
 
 fn render_scan(gpu: &mut Gpu, memory: &Box<dyn MemoryAccess>) {
-    gpu.framebuffer.0 = Vec::new();
+    println!("--------------------");
+    for pixel in 0..160 {
+        let tile_x = pixel / 8;
+        let tile_y = gpu.line / 8;
+        let tile_pixel_x = pixel % 8;
+        let tile_pixel_y = gpu.line % 8;
 
-    for _ in 0..11936 {
-        gpu.framebuffer.0.push(Rgba {
-            r: 255,
-            g: 0,
-            b: 255,
-            a: 255,
-        });
-    }
+        // println!("---Rendering pixel ({}, {}).---", pixel, gpu.line);
+        // println!("  * Tile: ({}, {})", tile_x, tile_y);
+        // println!("  * Pixel in tile: ({}, {})", pixel % 8, gpu.line % 8);
+        // println!(
+        //     "Reading tile at address {:#02x}]",
+        //     ((tile_x as u16) * (tile_y as u16)) as u16 + 0x8000
+        // );
 
-    push_row(memory.read_byte(0x7f49), &mut gpu.framebuffer.0);
-    for _ in 0..152 {
-        gpu.framebuffer.0.push(Rgba {
-            r: 255,
-            g: 255,
-            b: 0,
-            a: 255,
-        });
+        gpu.framebuffer.0.push(read_tile_map(
+            memory,
+            tile_x,
+            tile_y,
+            tile_pixel_x,
+            tile_pixel_y,
+        ));
     }
-    push_row(memory.read_byte(0x7f4a), &mut gpu.framebuffer.0);
-    for _ in 0..152 {
-        gpu.framebuffer.0.push(Rgba {
-            r: 255,
-            g: 255,
-            b: 0,
-            a: 255,
-        });
-    }
-    push_row(memory.read_byte(0x7f4b), &mut gpu.framebuffer.0);
-    for _ in 0..152 {
-        gpu.framebuffer.0.push(Rgba {
-            r: 255,
-            g: 255,
-            b: 0,
-            a: 255,
-        });
-    }
-    push_row(memory.read_byte(0x7f4c), &mut gpu.framebuffer.0);
-    for _ in 0..152 {
-        gpu.framebuffer.0.push(Rgba {
-            r: 255,
-            g: 255,
-            b: 0,
-            a: 255,
-        });
-    }
-    push_row(memory.read_byte(0x7f4d), &mut gpu.framebuffer.0);
-    for _ in 0..152 {
-        gpu.framebuffer.0.push(Rgba {
-            r: 255,
-            g: 255,
-            b: 0,
-            a: 255,
-        });
-    }
-    push_row(memory.read_byte(0x7f4e), &mut gpu.framebuffer.0);
-    for _ in 0..152 {
-        gpu.framebuffer.0.push(Rgba {
-            r: 255,
-            g: 255,
-            b: 0,
-            a: 255,
-        });
-    }
-    push_row(memory.read_byte(0x7f4f), &mut gpu.framebuffer.0);
-    for _ in 0..152 {
-        gpu.framebuffer.0.push(Rgba {
-            r: 255,
-            g: 255,
-            b: 0,
-            a: 255,
-        });
-    }
-    push_row(memory.read_byte(0x7f50), &mut gpu.framebuffer.0);
-    for _ in 0..152 {
-        gpu.framebuffer.0.push(Rgba {
-            r: 255,
-            g: 255,
-            b: 0,
-            a: 255,
-        });
-    }
-    push_row(memory.read_byte(0x7f51), &mut gpu.framebuffer.0);
-    
-    for _ in 0..(11936 - 152*3) {
-        gpu.framebuffer.0.push(Rgba {
-            r: 255,
-            g: 0,
-            b: 255,
-            a: 255,
-        });
-    }
+    println!("------------------");
 }
 
 fn step_mode(
@@ -190,7 +132,9 @@ fn step_mode(
 
                 if gpu.line == 143 {
                     gpu.scan_mode = ScanMode::VerticalBlank;
-                    return Some(gpu.framebuffer.clone());
+                    let f = gpu.framebuffer.clone();
+                    gpu.framebuffer = Framebuffer(Vec::new());
+                    return Some(f);
                 } else {
                     gpu.scan_mode = ScanMode::AccessOam;
                 }

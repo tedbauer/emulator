@@ -287,6 +287,7 @@ pub fn instructions() -> [Instruction; 256] {
                 registers.write_flag(FlagBit::N, true);
                 // TODO: no borrow from bit 4
                 registers.program_counter += 1;
+                //stop_and_dump(registers, memory);
             }),
         },
         Instruction {
@@ -451,9 +452,9 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 let address = concatenate(registers.h, registers.l);
                 memory.write_byte(address, registers.a);
-                let decremented_address = address - 1;
-                registers.h = upper_eight_bits(decremented_address);
-                registers.l = lower_eight_bits(decremented_address);
+                let incremented_address = address + 1;
+                registers.h = upper_eight_bits(incremented_address);
+                registers.l = lower_eight_bits(incremented_address);
                 registers.program_counter += 1;
             }),
         },
@@ -461,6 +462,10 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "INC HL",
             time_increment: TimeIncrement { m: 1, t: 8 },
             execute: Box::new(|registers, memory| -> () {
+                let value = concatenate(registers.h, registers.l);
+                let incremented_value = value + 1;
+                registers.h = upper_eight_bits(incremented_value);
+                registers.l = lower_eight_bits(incremented_value);
                 registers.program_counter += 1;
             }),
         },
@@ -487,7 +492,7 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
-            mnemonic: "JR Z,r8",
+            mnemonic: "JR Z,r8 hi",
             time_increment: TimeIncrement { m: 2, t: 8 }, // 12
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
@@ -625,6 +630,7 @@ pub fn instructions() -> [Instruction; 256] {
                 registers.write_flag(FlagBit::N, true);
                 // TODO: no borrow from bit 4
                 registers.program_counter += 1;
+                //stop_and_dump(registers, memory);
             }),
         },
         Instruction {
@@ -1495,6 +1501,7 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
+            // i think this is the problem
             mnemonic: "LDH (a8),A",
             time_increment: TimeIncrement { m: 2, t: 12 },
             execute: Box::new(|registers, memory| -> () {
@@ -1554,12 +1561,12 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
-            mnemonic: "JR Z,r8",
-            time_increment: TimeIncrement { m: 2, t: 8 }, // 12
+            mnemonic: "LD (a16),A",
+            time_increment: TimeIncrement { m: 3, t: 16 },
             execute: Box::new(|registers, memory| -> () {
                 let address = concatenate(
-                    memory.read_byte(registers.program_counter + 1),
                     memory.read_byte(registers.program_counter + 2),
+                    memory.read_byte(registers.program_counter + 1),
                 );
                 memory.write_byte(address, registers.a);
                 registers.program_counter += 3;

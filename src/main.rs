@@ -28,8 +28,9 @@ fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
+    let scalar = 1;
     let window = video_subsystem
-        .window("emulator", 640, 288*2)
+        .window("emulator", 160 * scalar, 144 * scalar)
         .build()
         .unwrap();
 
@@ -39,6 +40,8 @@ fn main() {
     let mut memory = Box::new(Memory::initialize()) as Box<dyn MemoryAccess>;
     let mut gpu = Gpu::initialize();
     let mut cpu = Cpu::initialize();
+
+    // 0x8048
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     'running: loop {
@@ -80,7 +83,7 @@ fn main() {
                 canvas.copy(&texture, None, None).unwrap();
                 canvas.present();
             }
-            None => { }
+            None => {}
         }
     }
 }

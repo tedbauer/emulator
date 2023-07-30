@@ -39,7 +39,7 @@ impl Memory {
         Self {
             bios,
             rom: [0; 16384],
-            the_rest: [215; 49152],
+            the_rest: [255; 49152],
 
             bios_enabled: true,
         }
