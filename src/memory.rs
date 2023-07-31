@@ -35,10 +35,21 @@ impl fmt::Debug for dyn MemoryAccess {
 impl Memory {
     pub fn initialize() -> Self {
         let bios = fs::read("roms/bios.rom").unwrap().try_into().unwrap();
-        println!("{:?}", bios);
+        let rom = fs::read("roms/kirby_dream_land_game.rom")
+            .unwrap()
+[0..16384]
+            .try_into()
+            .unwrap();
+        // println!("hello what is goin onnnn here");
+
+
+        // println!("{:?}", rom);
+        // println!("{}", rom.len());
+
+        // println!("{:?}", bios);
         Self {
             bios,
-            rom: [0; 16384],
+            rom,
             the_rest: [255; 49152],
 
             bios_enabled: true,

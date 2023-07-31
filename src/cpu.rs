@@ -467,6 +467,7 @@ pub fn instructions() -> [Instruction; 256] {
                 registers.h = upper_eight_bits(incremented_value);
                 registers.l = lower_eight_bits(incremented_value);
                 registers.program_counter += 1;
+                //stop_and_dump(registers, memory);
             }),
         },
         Instruction {

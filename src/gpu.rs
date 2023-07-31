@@ -8,6 +8,8 @@ pub struct Gpu {
     mode_clock: usize,
     line: u8,
     framebuffer: Framebuffer,
+    scroll_x: u8,
+    scroll_y: u8,
 }
 
 #[derive(Default, Debug, Copy, Clone)]
@@ -42,21 +44,21 @@ fn apply_memory_map(gpu: &Gpu, memory: &mut Box<dyn MemoryAccess>) {
     memory.write_byte(0xFF44, gpu.line)
 }
 
-fn get_pixel(n1: u8, n2: u8, bit: u8) -> bool {
-    (((n1 >> bit) as u8) + (((n2 >> bit) as u8) << 1)) > 0
-}
-
 fn read_tile_map(
     memory: &Box<dyn MemoryAccess>,
     tile_x: u8,
     tile_y: u8,
     pixel_x: u8,
     pixel_y: u8,
+    scroll_y: u8,
 ) -> Rgba {
-    let tile_map_index = memory
-        .read_byte(((tile_x as u16) * (tile_y as u16)) as u16 + 0x9800);
-    let tile_set_index = (tile_map_index as u16) * 16 + ((pixel_y as u16) * 2) + 0x8000;
-    println!("reading tileset index: {:#02x}", tile_set_index);
+    let tile_map_index =
+        memory.read_byte(((tile_x as u16) * (tile_y as u16)) as u16 + 0x9800) + ((scroll_y) / 8);
+    let tile_set_index = (tile_map_index as u16) * 16
+        + ((pixel_y as u16) * 2)
+        + 0x8000
+        + (((scroll_y % 8) * 2) as u16);
+    //println!("reading tileset index: {:#02x}", tile_set_index);
     let tile = memory.read_byte(tile_set_index as u16);
 
     if ((1 << pixel_x) & tile) > 0 {
@@ -77,7 +79,7 @@ fn read_tile_map(
 }
 
 fn render_scan(gpu: &mut Gpu, memory: &Box<dyn MemoryAccess>) {
-    println!("--------------------");
+    // println!("--------------------");
     for pixel in 0..160 {
         let tile_x = pixel / 8;
         let tile_y = gpu.line / 8;
@@ -98,9 +100,10 @@ fn render_scan(gpu: &mut Gpu, memory: &Box<dyn MemoryAccess>) {
             tile_y,
             tile_pixel_x,
             tile_pixel_y,
+            gpu.scroll_y,
         ));
     }
-    println!("------------------");
+    // println!("------------------");
 }
 
 fn step_mode(
@@ -146,6 +149,7 @@ fn step_mode(
                 gpu.mode_clock = 0;
                 gpu.scan_mode = ScanMode::AccessOam;
                 gpu.line = 0;
+                //gpu.scroll_y += 1;
             }
             None
         }
@@ -159,6 +163,8 @@ impl Gpu {
             mode_clock: 0,
             line: 0,
             framebuffer: gen_random_framebuffer(),
+            scroll_x: 0,
+            scroll_y: 0,
         }
     }
 

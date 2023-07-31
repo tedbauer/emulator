@@ -28,7 +28,7 @@ fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
-    let scalar = 1;
+    let scalar = 5;
     let window = video_subsystem
         .window("emulator", 160 * scalar, 144 * scalar)
         .build()
@@ -40,8 +40,6 @@ fn main() {
     let mut memory = Box::new(Memory::initialize()) as Box<dyn MemoryAccess>;
     let mut gpu = Gpu::initialize();
     let mut cpu = Cpu::initialize();
-
-    // 0x8048
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     'running: loop {
