@@ -53,15 +53,15 @@ fn read_tile_map(
     scroll_y: u8,
 ) -> Rgba {
     let tile_map_index =
-        memory.read_byte(((tile_x as u16) * (tile_y as u16)) as u16 + 0x9800) + ((scroll_y) / 8);
+        memory.read_byte(((tile_x as u16) + ((tile_y as u16) * 32)) as u16 + 0x9800) /*+ ((scroll_y) / 8)*/;
     let tile_set_index = (tile_map_index as u16) * 16
         + ((pixel_y as u16) * 2)
         + 0x8000
-        + (((scroll_y % 8) * 2) as u16);
+        /*+ (((scroll_y % 8) * 2) as u16)*/;
     //println!("reading tileset index: {:#02x}", tile_set_index);
     let tile = memory.read_byte(tile_set_index as u16);
 
-    if ((1 << pixel_x) & tile) > 0 {
+    if ((1 << (7 - pixel_x)) & tile) > 0 {
         Rgba {
             r: 0,
             g: 0,

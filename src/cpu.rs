@@ -536,6 +536,7 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 registers.l = memory.read_byte(registers.program_counter + 1);
                 registers.program_counter += 2;
+                //stop_and_dump(registers, memory);
             }),
         },
         Instruction {
@@ -631,7 +632,6 @@ pub fn instructions() -> [Instruction; 256] {
                 registers.write_flag(FlagBit::N, true);
                 // TODO: no borrow from bit 4
                 registers.program_counter += 1;
-                //stop_and_dump(registers, memory);
             }),
         },
         Instruction {
@@ -1779,7 +1779,6 @@ pub fn cb_instructions() -> [Instruction; 256] {
             mnemonic: "RL C",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
-                // println!("Executing RL C");
                 registers.write_flag(FlagBit::C, read_bit(registers.c, 7));
                 registers.c = registers.c.rotate_left(1);
                 registers.write_flag(FlagBit::Z, registers.c == 0);

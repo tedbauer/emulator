@@ -52,6 +52,12 @@ fn main() {
                 } => {
                     break 'running;
                 }
+                Event::KeyDown {
+                    keycode: Some(Keycode::T),
+                    ..
+                } => {
+                    memory.dump_tileset();
+                }
                 _ => {}
             }
         }
