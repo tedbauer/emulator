@@ -359,10 +359,11 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "RLA",
             time_increment: TimeIncrement { m: 1, t: 4 },
             execute: Box::new(|registers, memory| -> () {
+                let carry = registers.read_flag(FlagBit::C);
                 registers.write_flag(FlagBit::C, read_bit(registers.a, 7));
                 registers.write_flag(FlagBit::N, false);
                 registers.write_flag(FlagBit::H, false);
-                registers.a = registers.a.rotate_left(1);
+                registers.a = write_bit(registers.a.rotate_left(1), 0, carry);
                 registers.write_flag(FlagBit::Z, registers.a == 0);
                 registers.program_counter += 1;
             }),
