@@ -44,7 +44,7 @@ impl Memory {
         Self {
             bios,
             rom,
-            the_rest: [255; 49152],
+            the_rest: [0; 49152],
 
             bios_enabled: true,
         }

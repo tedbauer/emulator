@@ -28,7 +28,7 @@ fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
-    let scalar = 5;
+    let scalar = 1;
     let window = video_subsystem
         .window("emulator", 160 * scalar, 144 * scalar)
         .build()
@@ -63,9 +63,12 @@ fn main() {
         }
 
         let mut pixels = Vec::new();
+        // println!("{}", memory.read_byte(0xFF44));
         let time_increment = cpu.step(&mut memory);
+        // println!("{}", memory.read_byte(0xFF44));
         match gpu.step(time_increment, &mut memory) {
             Some(framebuffer) => {
+                // println!("{}", memory.read_byte(0xFF44));
                 for (index, pixel) in framebuffer.0.iter().enumerate() {
                     pixels.push(pixel.r);
                     pixels.push(pixel.g);
@@ -87,7 +90,10 @@ fn main() {
                 canvas.copy(&texture, None, None).unwrap();
                 canvas.present();
             }
-            None => {}
+            None => {
+
+                // println!("{}", memory.read_byte(0xFF44));
+            }
         }
     }
 }

@@ -41,7 +41,19 @@ fn gen_random_framebuffer() -> Framebuffer {
 
 /// Write all GPU registers to their memory-mapped locations.
 fn apply_memory_map(gpu: &Gpu, memory: &mut Box<dyn MemoryAccess>) {
-    memory.write_byte(0xFF44, gpu.line)
+    if gpu.line == 145 {
+        panic!("wut");
+    }
+    memory.write_byte(0xFF44, gpu.line);
+    memory.write_byte(0xFF42, gpu.scroll_y);
+}
+
+fn read_memory_mapped_registers(gpu: &mut Gpu, memory: &Box<dyn MemoryAccess>) {
+    gpu.line = memory.read_byte(0xFF44);
+    if gpu.line == 145 {
+        panic!("wuttt");
+    }
+    gpu.scroll_y = memory.read_byte(0xFF42);
 }
 
 fn read_tile_map(
@@ -50,15 +62,10 @@ fn read_tile_map(
     tile_y: u8,
     pixel_x: u8,
     pixel_y: u8,
-    scroll_y: u8,
 ) -> Rgba {
     let tile_map_index =
-        memory.read_byte(((tile_x as u16) + ((tile_y as u16) * 32)) as u16 + 0x9800) /*+ ((scroll_y) / 8)*/;
-    let tile_set_index = (tile_map_index as u16) * 16
-        + ((pixel_y as u16) * 2)
-        + 0x8000
-        /*+ (((scroll_y % 8) * 2) as u16)*/;
-    //println!("reading tileset index: {:#02x}", tile_set_index);
+        memory.read_byte(((tile_x as u16) + ((tile_y as u16) * 32)) as u16 + 0x9800);
+    let tile_set_index = (tile_map_index as u16) * 16 + ((pixel_y as u16) * 2) + 0x8000;
     let tile = memory.read_byte(tile_set_index as u16);
 
     if ((1 << (7 - pixel_x)) & tile) > 0 {
@@ -79,31 +86,19 @@ fn read_tile_map(
 }
 
 fn render_scan(gpu: &mut Gpu, memory: &Box<dyn MemoryAccess>) {
-    // println!("--------------------");
     for pixel in 0..160 {
         let tile_x = pixel / 8;
-        let tile_y = gpu.line / 8;
-        let tile_pixel_x = pixel % 8;
-        let tile_pixel_y = gpu.line % 8;
-
-        // println!("---Rendering pixel ({}, {}).---", pixel, gpu.line);
-        // println!("  * Tile: ({}, {})", tile_x, tile_y);
-        // println!("  * Pixel in tile: ({}, {})", pixel % 8, gpu.line % 8);
-        // println!(
-        //     "Reading tile at address {:#02x}]",
-        //     ((tile_x as u16) * (tile_y as u16)) as u16 + 0x8000
-        // );
-
+        let tile_y = ((((gpu.line as u16) + (gpu.scroll_y as u16)) % 255) as u8) / 8;
+        let tile_pixel_x = (pixel % 8 as u8);
+        let tile_pixel_y = ((gpu.line as u16) + (gpu.scroll_y as u16)) % 8;
         gpu.framebuffer.0.push(read_tile_map(
             memory,
             tile_x,
             tile_y,
             tile_pixel_x,
-            tile_pixel_y,
-            gpu.scroll_y,
+            tile_pixel_y as u8,
         ));
     }
-    // println!("------------------");
 }
 
 fn step_mode(
@@ -114,6 +109,9 @@ fn step_mode(
     gpu.mode_clock += (time_increment.t as usize);
     match gpu.scan_mode {
         ScanMode::AccessOam => {
+            if gpu.line == 145 {
+                panic!("happened from oam");
+            }
             if gpu.mode_clock >= 80 {
                 gpu.scan_mode = ScanMode::AccessVram;
                 gpu.mode_clock = 0;
@@ -121,6 +119,9 @@ fn step_mode(
             None
         }
         ScanMode::AccessVram => {
+            if gpu.line == 145 {
+                panic!("happened from vram");
+            }
             if gpu.mode_clock >= 172 {
                 gpu.scan_mode = ScanMode::HorizontalBlank;
                 gpu.mode_clock = 0;
@@ -129,11 +130,14 @@ fn step_mode(
             None
         }
         ScanMode::HorizontalBlank => {
+            if gpu.line == 145 {
+                panic!("happened from hblank");
+            }
             if gpu.mode_clock >= 204 {
                 gpu.line += 1;
                 gpu.mode_clock = 0;
 
-                if gpu.line == 143 {
+                if gpu.line == 144 {
                     gpu.scan_mode = ScanMode::VerticalBlank;
                     let f = gpu.framebuffer.clone();
                     gpu.framebuffer = Framebuffer(Vec::new());
@@ -145,11 +149,14 @@ fn step_mode(
             None
         }
         ScanMode::VerticalBlank => {
+            if gpu.line == 145 {
+                panic!("happened from vblank");
+            }
             if gpu.mode_clock >= 4560 {
                 gpu.mode_clock = 0;
                 gpu.scan_mode = ScanMode::AccessOam;
                 gpu.line = 0;
-                //gpu.scroll_y += 1;
+                // gpu.scroll_y += 1;
             }
             None
         }
@@ -173,6 +180,8 @@ impl Gpu {
         time_increment: TimeIncrement,
         memory: &mut Box<dyn MemoryAccess>,
     ) -> Option<Framebuffer> {
+        // println!("gpu line is: {}", self.line);
+        read_memory_mapped_registers(self, memory);
         let framebuffer = step_mode(self, memory, time_increment);
         apply_memory_map(self, memory);
         framebuffer

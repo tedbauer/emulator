@@ -27,6 +27,7 @@ impl Cpu {
         //         .mnemonic,
         //     self.registers
         // );
+        //println!("ff44: {}", memory.read_byte(0xFF44));
 
         let opcode = memory.read_byte(self.registers.program_counter);
         let instruction = &self.instruction_bank[opcode as usize];
@@ -195,6 +196,9 @@ pub fn instructions() -> [Instruction; 256] {
             time_increment: TimeIncrement { m: 1, t: 8 },
             execute: Box::new(|registers, memory| -> () {
                 registers.b += 1;
+                registers.write_flag(FlagBit::Z, registers.b == 0);
+                registers.write_flag(FlagBit::N, false);
+                registers.write_flag(FlagBit::H, true); // TODO: Only if half carry
                 registers.program_counter += 1;
             }),
         },
@@ -345,6 +349,10 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "DEC D",
             time_increment: TimeIncrement { m: 1, t: 4 },
             execute: Box::new(|registers, memory| -> () {
+                registers.d = registers.d - 1;
+                registers.write_flag(FlagBit::Z, registers.d == 0);
+                registers.write_flag(FlagBit::N, true);
+                registers.write_flag(FlagBit::H, true); // if no borrow from bit 4
                 registers.program_counter += 1;
             }),
         },
@@ -352,6 +360,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD D,d8",
             time_increment: TimeIncrement { m: 2, t: 8 },
             execute: Box::new(|registers, memory| -> () {
+                registers.d = memory.read_byte(registers.program_counter + 1);
                 registers.program_counter += 2;
             }),
         },
@@ -415,6 +424,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD E, d8",
             time_increment: TimeIncrement { m: 2, t: 8 },
             execute: Box::new(|registers, memory| -> () {
+                registers.e = memory.read_byte(registers.program_counter + 1);
                 registers.program_counter += 2;
             }),
         },
@@ -428,6 +438,7 @@ pub fn instructions() -> [Instruction; 256] {
             time_increment: TimeIncrement { m: 2, t: 8 }, // todo: 12 if taken
             execute: Box::new(|registers, memory| -> () {
                 registers.program_counter += 1;
+                // println!("adding {} to pc", (memory.read_byte(registers.program_counter) as i8));
 
                 if !registers.read_flag(FlagBit::Z) {
                     registers.program_counter = ((registers.program_counter as i16)
@@ -475,6 +486,10 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "INC H",
             time_increment: TimeIncrement { m: 1, t: 4 },
             execute: Box::new(|registers, memory| -> () {
+                registers.h = registers.h + 1;
+                registers.write_flag(FlagBit::Z, registers.h == 0);
+                registers.write_flag(FlagBit::N, false);
+                registers.write_flag(FlagBit::H, false); // if carry from 3
                 registers.program_counter += 1;
             }),
         },
@@ -770,6 +785,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD D,A",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.d = registers.a;
                 registers.program_counter += 1;
             }),
         },
@@ -852,6 +868,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD H,A",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.h = registers.a;
                 registers.program_counter += 1;
             }),
         },
@@ -966,6 +983,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "LD A,H",
             time_increment: TimeIncrement { m: 1, t: 4 },
             execute: Box::new(|registers, memory| -> () {
+                registers.a = registers.h;
                 registers.program_counter += 1;
             }),
         },
@@ -1068,6 +1086,11 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "SUB B",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                registers.a = registers.a - registers.b;
+                registers.write_flag(FlagBit::Z, registers.b == 0);
+                registers.write_flag(FlagBit::N, true);
+                registers.write_flag(FlagBit::H, true); // if no carry from 4
+                registers.write_flag(FlagBit::C, true); // if no borrow
                 registers.program_counter += 1;
             }),
         },
@@ -1600,9 +1623,11 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {}),
         },
         Instruction {
-            mnemonic: "LD A,(C)",
+            mnemonic: "LD A,($FF00+n)",
             time_increment: TimeIncrement { m: 0, t: 0 },
             execute: Box::new(|registers, memory| -> () {
+                let address = 0xFF00 + (memory.read_byte(registers.program_counter+1) as u16);
+                registers.a = memory.read_byte(address);
                 registers.program_counter += 2;
             }),
         },
@@ -1677,6 +1702,7 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 let value = memory.read_byte(registers.program_counter + 1);
                 registers.write_flag(FlagBit::Z, registers.a == value);
+                // println!("value: {}, a: {}, equal? {}", value, registers.a, value == registers.a);
                 registers.write_flag(FlagBit::N, true);
                 // registers.write_flag(FlagBit::H, true); todo: figure this one out
                 if registers.a < value {
