@@ -19,14 +19,14 @@ impl Cpu {
     }
 
     pub fn step<'a>(&mut self, memory: &'a mut Box<dyn MemoryAccess>) -> TimeIncrement {
-        // println!(
-        //     "PC: {} | Opcode: {} | {} | {:?}",
-        //     self.registers.program_counter,
-        //     memory.read_byte(self.registers.program_counter as u16),
-        //     self.instruction_bank[memory.read_byte(self.registers.program_counter as u16) as usize]
-        //         .mnemonic,
-        //     self.registers
-        // );
+        println!(
+            "PC: {} | Opcode: {} | {} | {:?}",
+            self.registers.program_counter,
+            memory.read_byte(self.registers.program_counter as u16),
+            self.instruction_bank[memory.read_byte(self.registers.program_counter as u16) as usize]
+                .mnemonic,
+            self.registers
+        );
         //println!("ff44: {}", memory.read_byte(0xFF44));
 
         let opcode = memory.read_byte(self.registers.program_counter);
