@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rust GameBoy Emulator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #222;
+            color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        #screen-container {
+            background-color: #111;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Make the small 160x144 canvas look sharp and pixelated when scaled up */
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            width: 640px;
+            /* 4x scale */
+            height: 576px;
+            /* 4x scale */
+            display: block;
+        }
+
+        #controls {
+            background-color: #333;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div id="screen-container">
+            <!-- The canvas where the emulator will be rendered -->
+            <canvas id="emulator-canvas" width="160" height="144"></canvas>
+        </div>
+        <div id="controls">
+            <label for="rom_input">Load ROM:</label>
+            <input type="file" id="rom_input" accept=".gb,.gbc">
+        </div>
+    </main>
+
+    <!-- This script will load the WASM module and run the emulator -->
+    <script type="module" src="./index.js"></script>
+</body>
+
+</html>

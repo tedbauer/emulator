@@ -1,4 +1,3 @@
-use image::ImageFormat;
 use std::fmt;
 use std::fs;
 
@@ -81,6 +80,7 @@ impl MemoryAccess for Memory {
         self.write_byte(addr + 1, ((value & 0xFF00) >> 8) as u8)
     }
 
+    /*
     fn dump_tileset(&self) {
         use image::{Rgb, RgbImage};
 
@@ -103,4 +103,5 @@ impl MemoryAccess for Memory {
         fs::create_dir("debug").unwrap();
         img.save("debug/tiles.png");
     }
+    */
 }

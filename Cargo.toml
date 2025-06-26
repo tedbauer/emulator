@@ -3,9 +3,39 @@ name = "emulator"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# The default feature set includes the panic hook for better debugging in browsers.
+default = ["console_error_panic_hook"]
 
 [dependencies]
-rand = "0.8.5"
+# Common dependencies
+rand = "0.8"
+
+# WASM-specific dependencies
+wasm-bindgen = "0.2"
+# This dependency is now optional. It's enabled by the `default` feature flag above.
+console_error_panic_hook = { version = "0.1.7", optional = true }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  'CanvasRenderingContext2d',
+  'Document',
+  'HtmlCanvasElement',
+  'ImageData',
+  'Window',
+  'KeyboardEvent',
+]
+
+# The 'getrandom' crate with the "js" feature is required for `rand` to work in WASM.
+[dependencies.getrandom]
+version = "0.2"
+features = ["js"]
+
+# Native-only dependencies (SDL2)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 sdl2 = "0.35"
-image = "0.24.6"
+libc = "0.2"
