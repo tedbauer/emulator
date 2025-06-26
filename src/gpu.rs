@@ -86,18 +86,19 @@ fn read_tile_map(
 }
 
 fn render_scan(gpu: &mut Gpu, memory: &Box<dyn MemoryAccess>) {
-    for pixel in 0..160 {
-        let tile_x = pixel / 8;
+    for pixel_x in 0..160 {
+        let tile_x = pixel_x / 8;
         let tile_y = ((((gpu.line as u16) + (gpu.scroll_y as u16)) % 255) as u8) / 8;
-        let tile_pixel_x = (pixel % 8 as u8);
+        let tile_pixel_x = pixel_x % 8;
         let tile_pixel_y = ((gpu.line as u16) + (gpu.scroll_y as u16)) % 8;
-        gpu.framebuffer.0.push(read_tile_map(
-            memory,
-            tile_x,
-            tile_y,
-            tile_pixel_x,
-            tile_pixel_y as u8,
-        ));
+
+        // --- FIX IS HERE ---
+        // Instead of pushing, we calculate the correct index and overwrite the pixel.
+        let pixel_index = (gpu.line as usize * 160) + (pixel_x as usize);
+        if pixel_index < gpu.framebuffer.0.len() {
+            gpu.framebuffer.0[pixel_index] =
+                read_tile_map(memory, tile_x, tile_y, tile_pixel_x, tile_pixel_y as u8);
+        }
     }
 }
 
@@ -140,7 +141,7 @@ fn step_mode(
                 if gpu.line == 144 {
                     gpu.scan_mode = ScanMode::VerticalBlank;
                     let f = gpu.framebuffer.clone();
-                    gpu.framebuffer = Framebuffer(Vec::new());
+                    //gpu.framebuffer = Framebuffer(Vec::new());
                     return Some(f);
                 } else {
                     gpu.scan_mode = ScanMode::AccessOam;

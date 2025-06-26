@@ -15,6 +15,8 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
         }
 
         main {
@@ -24,45 +26,104 @@
             gap: 1.5rem;
         }
 
-        #screen-container {
+        #display-area {
+            display: flex;
+            flex-wrap: wrap;
+            /* Allows items to wrap on smaller screens */
+            gap: 1.5rem;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        #screen-container,
+        #tileset-container {
             background-color: #111;
             padding: 1rem;
             border-radius: 10px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
         }
 
-        /* Make the small 160x144 canvas look sharp and pixelated when scaled up */
         canvas {
             image-rendering: pixelated;
             image-rendering: crisp-edges;
-            width: 640px;
-            /* 4x scale */
-            height: 576px;
-            /* 4x scale */
             display: block;
+            background-color: #9bbc0f;
+            /* Classic Game Boy green */
+            border-radius: 3px;
+        }
+
+        #emulator-canvas {
+            width: 480px;
+            /* 3x scale */
+            height: 432px;
+            /* 3x scale */
+        }
+
+        #tileset-canvas {
+            width: 256px;
+            /* 2x scale */
+            height: 384px;
+            /* 2x scale */
         }
 
         #controls {
             background-color: #333;
             padding: 1rem 1.5rem;
             border-radius: 8px;
+
+            /* ... (existing styles) ... */
+            display: flex;
+            /* ADD this */
+            gap: 2rem;
+            /* ADD this */
+            align-items: center;
+            /* ADD this */
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
     </style>
 </head>
 
 <body>
     <main>
-        <div id="screen-container">
-            <!-- The canvas where the emulator will be rendered -->
-            <canvas id="emulator-canvas" width="160" height="144"></canvas>
+        <div id="display-area">
+            <div id="screen-container">
+                <label>Game Screen</label>
+                <canvas id="emulator-canvas" width="160" height="144"></canvas>
+            </div>
+
+            <div id="tileset-container">
+                <label>VRAM Tileset</label>
+                <canvas id="tileset-canvas" width="128" height="192"></canvas>
+            </div>
         </div>
+
         <div id="controls">
             <label for="rom_input">Load ROM:</label>
             <input type="file" id="rom_input" accept=".gb,.gbc">
         </div>
+
+        <div id="controls">
+            <div class="control-group">
+                <label for="rom_input">Load ROM:</label>
+                <input type="file" id="rom_input" accept=".gb,.gbc">
+            </div>
+            <div class="control-group">
+                <label for="speed-slider">Speed:</label>
+                <input type="range" id="speed-slider" min="1" max="50" value="40" title="Higher is slower">
+                <span id="speed-value">40x Slower</span>
+            </div>
+        </div>
     </main>
 
-    <!-- This script will load the WASM module and run the emulator -->
     <script type="module" src="./index.js"></script>
 </body>
 

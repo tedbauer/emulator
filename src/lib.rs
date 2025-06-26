@@ -16,6 +16,9 @@ use memory::{Memory, MemoryAccess};
 const SCREEN_WIDTH: usize = 160;
 const SCREEN_HEIGHT: usize = 144;
 
+const TILESET_WIDTH: usize = 128; // 16 tiles across
+const TILESET_HEIGHT: usize = 192; // 24 tiles down
+
 /// The main Emulator struct that will be exposed to JavaScript.
 #[wasm_bindgen]
 pub struct Emulator {
@@ -25,6 +28,9 @@ pub struct Emulator {
     // This buffer holds the pixel data (RGBA) for one frame.
     // JavaScript will read from this buffer to draw to the canvas.
     pixel_buffer: Vec<u8>,
+
+    // ADD: A buffer for our tileset visualization
+    tileset_buffer: Vec<u8>,
 }
 
 #[wasm_bindgen]
@@ -44,8 +50,9 @@ impl Emulator {
             cpu: Cpu::initialize(),
             gpu: Gpu::initialize(),
             memory,
-            // Initialize the pixel buffer. It's size will never change.
+            // Initialize the pixel buffer. Its size will never change.
             pixel_buffer: vec![0; SCREEN_WIDTH * SCREEN_HEIGHT * 4],
+            tileset_buffer: vec![0; TILESET_WIDTH * TILESET_HEIGHT * 4],
         }
     }
 
@@ -68,6 +75,9 @@ impl Emulator {
                     self.pixel_buffer[offset + 3] = 255; // Alpha channel
                 }
                 // We have a full frame, so we can exit the loop for this tick.
+
+                // ADD: Update the tileset buffer on every completed frame
+                self.memory.generate_tileset_rgba(&mut self.tileset_buffer);
                 break;
             }
         }
@@ -77,6 +87,12 @@ impl Emulator {
     /// This is the most efficient way to get the screen data to JavaScript.
     pub fn framebuffer_ptr(&self) -> *const u8 {
         self.pixel_buffer.as_ptr()
+    }
+
+    // ADD: A new function to get a pointer to the tileset data
+    #[wasm_bindgen]
+    pub fn tileset_ptr(&self) -> *const u8 {
+        self.tileset_buffer.as_ptr()
     }
 
     /// Handles key down events from the browser.

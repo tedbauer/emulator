@@ -1,68 +1,73 @@
-// We will only import the default `init` function.
-import init from './pkg/emulator.js';
+import init, { Emulator } from './pkg/emulator.js';
 
-// --- DEBUGGING LOGS ---
-console.log("index.js script started.");
-
+// --- Constants ---
 const SCREEN_WIDTH = 160;
 const SCREEN_HEIGHT = 144;
-const FRAMEBUFFER_SIZE = SCREEN_WIDTH * SCREEN_HEIGHT * 4; // RGBA = 4 bytes per pixel
+const FRAMEBUFFER_SIZE = SCREEN_WIDTH * SCREEN_HEIGHT * 4;
+const TILESET_WIDTH = 128;
+const TILESET_HEIGHT = 192;
+const TILESET_BUFFER_SIZE = TILESET_WIDTH * TILESET_HEIGHT * 4;
 
+// --- Get DOM Elements ---
 const canvas = document.getElementById('emulator-canvas');
 const ctx = canvas.getContext('2d');
+const tilesetCanvas = document.getElementById('tileset-canvas');
+const tilesetCtx = tilesetCanvas.getContext('2d');
+const speedSlider = document.getElementById('speed-slider');
+const speedValue = document.getElementById('speed-value');
 
-// This main function now runs as soon as the page loads.
 async function run() {
-    // --- DEBUGGING LOGS ---
     console.log("run() function called. Awaiting init()...");
 
-    // Initialize the WASM module. The object contains our exported functions.
     const wasmModule = await init();
+    console.log("init() successful. WASM module loaded.");
 
-    // --- DEBUGGING LOGS ---
-    console.log("init() successful. WASM module loaded:", wasmModule);
+    const emu = new Emulator(new Uint8Array());
+    const memory = wasmModule.memory;
 
-    // Instead of a class, we call the exported `emulator_new` function.
-    // This returns a "handle" or pointer to our Rust `Emulator` struct instance.
-    const emu = wasmModule.emulator_new();
-    const memory = wasmModule.memory; // Get the memory export
+    // --- SPEED CONTROL LOGIC ---
+    let slowdownFactor = 40; // CHANGED: Default to a much slower speed
+    let frameCounter = 0;
 
-    // Wire up keyboard input to the emulator
-    document.addEventListener('keydown', event => {
-        // Pass the emulator instance handle to the function
-        wasmModule.emulator_key_down(emu, event.code);
+    // Set initial text and slider value
+    speedSlider.value = slowdownFactor;
+    speedValue.textContent = `${slowdownFactor}x Slower`;
+
+    // Listen for changes on the slider
+    speedSlider.addEventListener('input', (event) => {
+        slowdownFactor = parseInt(event.target.value, 10);
+        if (slowdownFactor === 1) {
+            speedValue.textContent = 'Full Speed';
+        } else {
+            speedValue.textContent = `${slowdownFactor}x Slower`;
+        }
     });
-    document.addEventListener('keyup', event => {
-        // Pass the emulator instance handle to the function
-        wasmModule.emulator_key_up(emu, event.code);
-    });
+    // --- END OF SPEED CONTROL LOGIC ---
 
-    // The main render loop, driven by the browser
+    // --- The Main Render Loop ---
     const renderLoop = () => {
-        // Pass the emulator instance handle to the tick function
-        wasmModule.emulator_tick(emu);
+        frameCounter++;
 
-        // Get the memory address of the framebuffer
-        const framebufferPtr = wasmModule.emulator_framebuffer_ptr(emu);
+        // Only execute the emulator tick and draw if the counter
+        // is a multiple of our slowdown factor.
+        if (frameCounter % slowdownFactor === 0) {
+            // Run the emulator for one full frame
+            emu.tick();
 
-        try {
-            // This part remains the same. We create a view into the WASM memory.
-            const pixelData = new Uint8ClampedArray(
-                memory.buffer,
-                framebufferPtr,
-                FRAMEBUFFER_SIZE
-            );
-
-            // Create an ImageData object and paint it to the canvas
+            // --- Draw the Main Game Screen ---
+            const framebufferPtr = emu.framebuffer_ptr();
+            const pixelData = new Uint8ClampedArray(memory.buffer, framebufferPtr, FRAMEBUFFER_SIZE);
             const imageData = new ImageData(pixelData, SCREEN_WIDTH, SCREEN_HEIGHT);
             ctx.putImageData(imageData, 0, 0);
-        } catch (e) {
-            console.error("Error creating or drawing framebuffer:", e);
-            // Stop the loop if there's an error to avoid flooding the console
-            return;
+
+            // --- Draw the Tileset ---
+            const tilesetPtr = emu.tileset_ptr();
+            const tilesetPixelData = new Uint8ClampedArray(memory.buffer, tilesetPtr, TILESET_BUFFER_SIZE);
+            const tilesetImageData = new ImageData(tilesetPixelData, TILESET_WIDTH, TILESET_HEIGHT);
+            tilesetCtx.putImageData(tilesetImageData, 0, 0);
         }
 
-        // Schedule the next frame to be drawn
+        // Always request the next animation frame to keep the UI responsive.
         requestAnimationFrame(renderLoop);
     };
 
@@ -70,9 +75,4 @@ async function run() {
     requestAnimationFrame(renderLoop);
 }
 
-// Run the emulator as soon as the page loads.
-run().catch(e => {
-    // --- DEBUGGING LOGS ---
-    // Make sure we see any errors that happen during the run() function.
-    console.error("Error running emulator:", e);
-});
+run().catch(console.error);
