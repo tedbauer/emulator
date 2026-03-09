@@ -17,6 +17,11 @@ const placeholder = document.getElementById("screen-placeholder");
 const codeEditor = document.getElementById("code-editor");
 const compileBtn = document.getElementById("compile-btn");
 const compileError = document.getElementById("compile-error");
+const tabBar = document.getElementById("tab-bar");
+const newFileBtn = document.getElementById("new-file-btn");
+const examplesBtn = document.getElementById("examples-btn");
+const examplesMenu = document.getElementById("examples-menu");
+const termOutput = document.getElementById("terminal-output");
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
 const SCREEN_W = 160;
@@ -26,8 +31,11 @@ const TILESET_H = 192;
 const MEMMAP_W = 256;
 const MEMMAP_H = 256;
 
-// ── Default Shrimp source (pong) ──────────────────────────────────────────────
-codeEditor.value = `from core import pressed, set_sprite, Button
+// ── Example sources ───────────────────────────────────────────────────────────
+const EXAMPLES = {
+    pong: {
+        name: "pong.s",
+        content: `from core import pressed, set_sprite, Button
 
 tile ball:
     ..3333..
@@ -96,9 +104,111 @@ on vblank:
     set_sprite(1, px, 136, paddle)
     set_sprite(2, px + 8, 136, paddle)
     set_sprite(3, px + 16, 136, paddle)
-`;
+`
+    }
+};
 
-// Tab key inserts spaces in the editor
+// ── File system state ─────────────────────────────────────────────────────────
+let files = [];   // [{ id, name, content }]
+let activeId = null;
+let nextId = 0;
+let untitledCounter = 1;
+
+function createFile(name, content = "") {
+    const id = nextId++;
+    files.push({ id, name, content });
+    return id;
+}
+
+function activeFile() {
+    return files.find(f => f.id === activeId) || null;
+}
+
+function saveActiveContent() {
+    const f = activeFile();
+    if (f) f.content = codeEditor.value;
+}
+
+function switchTo(id) {
+    saveActiveContent();
+    activeId = id;
+    const f = activeFile();
+    codeEditor.value = f ? f.content : "";
+    renderTabs();
+    // Update header file name display
+    document.title = f ? `${f.name} — Shrimp` : "Shrimp Editor";
+}
+
+function closeFile(id) {
+    saveActiveContent();
+    const idx = files.findIndex(f => f.id === id);
+    if (idx === -1) return;
+    files.splice(idx, 1);
+    if (files.length === 0) {
+        // Open a blank file when last tab is closed
+        const newId = createFile(`untitled-${untitledCounter++}.s`, "");
+        switchTo(newId);
+    } else {
+        // Switch to adjacent tab
+        const newIdx = Math.min(idx, files.length - 1);
+        switchTo(files[newIdx].id);
+    }
+}
+
+// ── Tab rendering ─────────────────────────────────────────────────────────────
+function renderTabs() {
+    tabBar.innerHTML = "";
+    for (const f of files) {
+        const tab = document.createElement("div");
+        tab.className = "tab" + (f.id === activeId ? " active" : "");
+        tab.dataset.id = f.id;
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "tab-name";
+        nameSpan.textContent = f.name;
+
+        const closeBtn = document.createElement("button");
+        closeBtn.className = "tab-close";
+        closeBtn.textContent = "×";
+        closeBtn.title = "Close";
+        closeBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            closeFile(f.id);
+        });
+
+        tab.appendChild(nameSpan);
+        tab.appendChild(closeBtn);
+        tab.addEventListener("click", () => switchTo(f.id));
+        tabBar.appendChild(tab);
+    }
+}
+
+// ── New file ──────────────────────────────────────────────────────────────────
+newFileBtn.addEventListener("click", () => {
+    const id = createFile(`untitled-${untitledCounter++}.s`, "");
+    switchTo(id);
+});
+
+// ── Examples dropdown ─────────────────────────────────────────────────────────
+examplesBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    examplesMenu.classList.toggle("hidden");
+});
+document.addEventListener("click", () => examplesMenu.classList.add("hidden"));
+
+document.querySelectorAll(".menu-item[data-example]").forEach(item => {
+    item.addEventListener("click", () => {
+        const ex = EXAMPLES[item.dataset.example];
+        if (!ex) return;
+        // If a file with this name is already open, switch to it
+        const existing = files.find(f => f.name === ex.name);
+        if (existing) { switchTo(existing.id); return; }
+        const id = createFile(ex.name, ex.content);
+        switchTo(id);
+    });
+});
+
+// ── Tab key in editor ─────────────────────────────────────────────────────────
 codeEditor.addEventListener("keydown", (e) => {
     if (e.key === "Tab") {
         e.preventDefault();
@@ -108,11 +218,20 @@ codeEditor.addEventListener("keydown", (e) => {
     }
 });
 
-// ── State ─────────────────────────────────────────────────────────────────────
-let emulator = null;
-let animFrame = null;
+// ── Terminal ──────────────────────────────────────────────────────────────────
+function termClear() {
+    termOutput.innerHTML = "";
+}
 
-// ── Web Audio ─────────────────────────────────────────────────────────────────
+function termLine(text, cls = "") {
+    const span = document.createElement("span");
+    span.className = "term-line" + (cls ? " " + cls : "");
+    span.textContent = text;
+    termOutput.appendChild(span);
+    termOutput.scrollTop = termOutput.scrollHeight;
+}
+
+// ── Audio ─────────────────────────────────────────────────────────────────────
 const SAMPLE_RATE = 44100;
 const SCRIPT_BUF = 2048;
 const RING_FRAMES = 4096;
@@ -124,9 +243,7 @@ const ringL = new Float32Array(RING_FRAMES);
 const ringR = new Float32Array(RING_FRAMES);
 let writeHead = 0, readHead = 0;
 
-function ringAvailable() {
-    return (writeHead - readHead + RING_FRAMES) % RING_FRAMES;
-}
+function ringAvailable() { return (writeHead - readHead + RING_FRAMES) % RING_FRAMES; }
 
 function initAudio() {
     if (audioCtx) return;
@@ -137,8 +254,7 @@ function initAudio() {
         const R = outputBuffer.getChannelData(1);
         for (let i = 0; i < L.length; i++) {
             if (ringAvailable() > 0) {
-                L[i] = ringL[readHead];
-                R[i] = ringR[readHead];
+                L[i] = ringL[readHead]; R[i] = ringR[readHead];
                 readHead = (readHead + 1) % RING_FRAMES;
             } else { L[i] = R[i] = 0; }
         }
@@ -158,13 +274,9 @@ function pushAudio(samples) {
 }
 
 // ── Debug toggles ─────────────────────────────────────────────────────────────
-const visible = {
-    "tileset-section": false,
-    "memmap-section": false,
-    "ilog-section": false,
-};
+const visible = { "tileset-section": false, "memmap-section": false, "ilog-section": false };
 
-document.querySelectorAll(".dbg-btn").forEach((btn) => {
+document.querySelectorAll(".dbg-btn").forEach(btn => {
     btn.addEventListener("click", () => {
         const target = btn.dataset.target;
         visible[target] = !visible[target];
@@ -174,41 +286,26 @@ document.querySelectorAll(".dbg-btn").forEach((btn) => {
 });
 
 // ── Emulator loop ─────────────────────────────────────────────────────────────
+let emulator = null;
+let animFrame = null;
+let lastFrame = 0;
 const TARGET_FPS = 59.7;
 const FRAME_MS = 1000 / TARGET_FPS;
-let lastFrameTime = 0;
 
-function startEmulatorLoop() {
-    if (animFrame !== null) { cancelAnimationFrame(animFrame); animFrame = null; }
-    lastFrameTime = performance.now() - FRAME_MS;
-    loop();
-}
-
-function loop() {
-    const now = performance.now();
-    const elapsed = now - lastFrameTime;
-
+function loop(now) {
+    const elapsed = now - lastFrame;
     if (elapsed >= FRAME_MS) {
-        lastFrameTime = now - Math.min(elapsed % FRAME_MS, FRAME_MS);
+        lastFrame = now - Math.min(elapsed % FRAME_MS, FRAME_MS);
         emulator.tick();
-
-        const pixels = new Uint8ClampedArray(emulator.get_framebuffer());
-        ctx.putImageData(new ImageData(pixels, SCREEN_W, SCREEN_H), 0, 0);
+        ctx.putImageData(new ImageData(new Uint8ClampedArray(emulator.get_framebuffer()), SCREEN_W, SCREEN_H), 0, 0);
         pushAudio(emulator.get_audio_samples());
-
-        if (visible["tileset-section"]) {
-            const t = new Uint8ClampedArray(emulator.get_tileset());
-            tilesetCtx.putImageData(new ImageData(t, TILESET_W, TILESET_H), 0, 0);
-        }
-        if (visible["memmap-section"]) {
-            const m = new Uint8ClampedArray(emulator.get_memory_map());
-            memmapCtx.putImageData(new ImageData(m, MEMMAP_W, MEMMAP_H), 0, 0);
-        }
-        if (visible["ilog-section"]) {
+        if (visible["tileset-section"])
+            tilesetCtx.putImageData(new ImageData(new Uint8ClampedArray(emulator.get_tileset()), TILESET_W, TILESET_H), 0, 0);
+        if (visible["memmap-section"])
+            memmapCtx.putImageData(new ImageData(new Uint8ClampedArray(emulator.get_memory_map()), MEMMAP_W, MEMMAP_H), 0, 0);
+        if (visible["ilog-section"])
             ilogPre.textContent = emulator.get_instruction_log();
-        }
     }
-
     animFrame = requestAnimationFrame(loop);
 }
 
@@ -218,75 +315,85 @@ async function startEmulator(romBytes) {
     if (audioCtx.state === "suspended") await audioCtx.resume();
     emulator = new Emulator(romBytes);
     placeholder.classList.add("hidden");
-    lastFrameTime = performance.now() - FRAME_MS;
-    loop();
+    lastFrame = performance.now() - FRAME_MS;
+    animFrame = requestAnimationFrame(loop);
 }
 
 // ── Compile & Run ─────────────────────────────────────────────────────────────
 compileBtn.addEventListener("click", async () => {
+    saveActiveContent();
+    const f = activeFile();
+    if (!f) return;
+
     compileError.classList.remove("visible");
     compileError.textContent = "";
-    status.textContent = "Compiling…";
+    termClear();
 
     initAudio();
     if (audioCtx.state === "suspended") await audioCtx.resume();
 
+    const t0 = performance.now();
+    termLine(`🦐  Compiling ${f.name}…`, "term-dim");
+    status.textContent = "Compiling…";
+
     let romBytes;
     try {
-        romBytes = compile_to_rom(codeEditor.value);
+        romBytes = compile_to_rom(f.content);
     } catch (err) {
-        compileError.textContent = String(err);
+        const msg = String(err);
+        compileError.textContent = msg;
         compileError.classList.add("visible");
+        termLine(`✗  ${msg}`, "term-err");
         status.textContent = "Compile error.";
         return;
     }
 
+    const ms = (performance.now() - t0).toFixed(0);
+    termLine(`✓  Generated ${romBytes.length.toLocaleString()} bytes in ${ms}ms`, "term-ok");
+
     try {
         await startEmulator(romBytes);
+        termLine(`▶  Running in emulator`, "term-info");
         status.textContent = "Running.";
     } catch (err) {
-        status.textContent = `Emulator error: ${err}`;
+        termLine(`✗  Emulator error: ${err}`, "term-err");
+        status.textContent = `Emulator error.`;
         console.error(err);
     }
 });
 
 // ── Keyboard ──────────────────────────────────────────────────────────────────
-const PREVENT_SCROLL = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"]);
+const PREVENT_SCROLL = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 
-window.addEventListener("keydown", (e) => {
-    // Don't intercept keys while typing in the code editor
+window.addEventListener("keydown", e => {
     if (document.activeElement === codeEditor) return;
     if (!emulator) return;
     if (PREVENT_SCROLL.has(e.key)) e.preventDefault();
     if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
     emulator.key_down(e.code);
 });
-
-window.addEventListener("keyup", (e) => {
+window.addEventListener("keyup", e => {
     if (document.activeElement === codeEditor) return;
     if (!emulator) return;
     emulator.key_up(e.code);
 });
 
-// ── File drop / picker ────────────────────────────────────────────────────────
-
+// ── File load via picker ──────────────────────────────────────────────────────
 romInput.addEventListener("change", () => {
     const file = romInput.files[0];
-    if (file) loadFile(file);
-});
-
-function loadFile(file) {
+    if (!file) return;
     status.textContent = `Loading ${file.name}…`;
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
         const bytes = new Uint8Array(e.target.result);
-        startEmulator(bytes).catch((err) => {
-            status.textContent = `Error: ${err}`;
-            console.error(err);
-        });
+        termClear();
+        termLine(`📂  Loaded ${file.name} (${bytes.length.toLocaleString()} bytes)`, "term-info");
+        startEmulator(bytes)
+            .then(() => { status.textContent = "Running."; termLine("▶  Running in emulator", "term-ok"); })
+            .catch(err => { status.textContent = `Error: ${err}`; console.error(err); });
     };
     reader.readAsArrayBuffer(file);
-}
+});
 
 // ── WASM init ─────────────────────────────────────────────────────────────────
 (async () => {
@@ -294,9 +401,15 @@ function loadFile(file) {
     try {
         await Promise.all([initEmu(), initComp()]);
         compileBtn.disabled = false;
-        status.textContent = "Load a ROM to start.";
+        status.textContent = "Ready.";
+        // Open Pong by default
+        const pongId = createFile(EXAMPLES.pong.name, EXAMPLES.pong.content);
+        switchTo(pongId);
+        termLine("🦐  Shrimp compiler ready", "term-ok");
+        termLine("    Press ▶ Run to compile and play", "term-dim");
     } catch (err) {
         status.textContent = `Failed to load: ${err}`;
+        termLine(`✗  Load failed: ${err}`, "term-err");
         console.error(err);
     }
 })();

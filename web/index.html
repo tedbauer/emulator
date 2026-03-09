@@ -4,10 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>emulator</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap"
-        rel="stylesheet" />
+    <title>Shrimp Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet" />
     <style>
         *,
         *::before,
@@ -22,65 +20,133 @@
             color: #111;
             font-family: 'Merriweather', Georgia, serif;
             font-weight: 300;
-            font-size: 18px;
+            font-size: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            gap: 0;
-            padding: 0;
         }
 
-        /* Vertically centers main-row + bottom-bar. Debug panels sit outside. */
+        /* ── Vertical centering wrapper ── */
         #center-wrap {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 14px;
             padding: 24px;
             width: 100%;
         }
 
-        /* ── Main row: editor left, GB screen right ── */
+        /* ── Main row ── */
         #main-row {
             display: flex;
             gap: 20px;
             align-items: stretch;
         }
 
-        /* ── Shrimp editor pane ── */
+        /* ── Editor pane ── */
         #editor-pane {
             display: flex;
             flex-direction: column;
-            width: 400px;
+            width: 420px;
             border: 2px solid #111;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 4px 4px 0 #111;
+            background: #fffde7;
         }
 
-        #shrimp-header {
+        /* Header row: logo + actions */
+        #editor-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 14px;
+            gap: 8px;
+            padding: 8px 12px;
             background: #111;
             color: #fff;
             flex-shrink: 0;
         }
 
-        #shrimp-header strong {
+        #logo {
             font-size: 0.82rem;
             font-weight: 700;
-            font-style: italic;
+            white-space: nowrap;
         }
 
-        #shrimp-header span {
-            font-size: 0.75rem;
-            opacity: 0.5;
+        /* Tab bar */
+        #tab-bar {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
             flex: 1;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding: 0 4px;
+        }
+
+        #tab-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px 3px 12px;
+            background: #333;
+            color: #aaa;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            transition: background 0.1s;
+            user-select: none;
+        }
+
+        .tab:hover {
+            background: #444;
+        }
+
+        .tab.active {
+            background: #fffde7;
+            color: #111;
+        }
+
+        .tab-close {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 0.8rem;
+            line-height: 1;
+            opacity: 0.5;
+            padding: 0 1px;
+        }
+
+        .tab-close:hover {
+            opacity: 1;
+        }
+
+        /* Header action buttons */
+        .hdr-btn {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #ccc;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.7rem;
+            font-weight: 400;
+            padding: 3px 9px;
+            white-space: nowrap;
+            transition: background 0.1s;
+        }
+
+        .hdr-btn:hover {
+            background: #3a3a3a;
+            color: #fff;
         }
 
         #compile-btn {
@@ -90,19 +156,15 @@
             color: #111;
             cursor: pointer;
             font-family: inherit;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
             padding: 4px 12px;
             white-space: nowrap;
-            transition: opacity 0.1s, transform 0.1s;
+            transition: opacity 0.1s;
         }
 
         #compile-btn:hover {
-            opacity: 0.85;
-        }
-
-        #compile-btn:active {
-            transform: scale(0.97);
+            opacity: 0.8;
         }
 
         #compile-btn:disabled {
@@ -110,12 +172,49 @@
             cursor: not-allowed;
         }
 
+        /* Examples dropdown */
+        #examples-wrap {
+            position: relative;
+        }
+
+        #examples-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 4px;
+            min-width: 120px;
+            z-index: 100;
+            box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        #examples-menu.hidden {
+            display: none;
+        }
+
+        .menu-item {
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.72rem;
+            padding: 6px 12px;
+            border-radius: 5px;
+        }
+
+        .menu-item:hover {
+            background: #333;
+            color: #fff;
+        }
+
+        /* Textarea */
         #code-editor {
             flex: 1;
             width: 100%;
             background: #fffde7;
             color: #1a1a00;
             border: none;
+            border-top: 1px solid #e8e0b0;
             padding: 12px 14px;
             font-family: 'Menlo', 'Consolas', 'JetBrains Mono', monospace;
             font-size: 0.7rem;
@@ -154,7 +253,7 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 4px 4px 0 #111;
-            background: #111;
+            background: #f5f0e8;
             flex: 1;
             display: flex;
             align-items: stretch;
@@ -175,46 +274,122 @@
             justify-content: center;
             gap: 14px;
             background: #f5f0e8;
-            color: #888;
+            color: #999;
             font-size: 0.82rem;
-            font-style: italic;
             pointer-events: none;
             user-select: none;
         }
 
         #screen-placeholder .ph-icon {
             font-size: 2.4rem;
-            opacity: 0.25;
+            opacity: 0.4;
         }
 
         #screen-placeholder .ph-text {
             text-align: center;
             line-height: 1.8;
-            opacity: 0.5;
         }
 
         #screen-placeholder.hidden {
             display: none;
         }
 
-        /* ── Bottom bar (always the same height — never shifts) ── */
+        /* ── Terminal panel ── */
+        #terminal-panel {
+            width: 100%;
+            max-width: 920px;
+            border: 2px solid #111;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 4px 4px 0 #111;
+            background: #1a1a12;
+        }
+
+        #terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 12px;
+            background: #111;
+            color: #aaa;
+            font-size: 0.68rem;
+            font-family: 'Menlo', 'Consolas', monospace;
+            letter-spacing: 0.04em;
+        }
+
+        #terminal-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        #terminal-dots span {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        #terminal-dots .dot-r {
+            background: #ff5f56;
+        }
+
+        #terminal-dots .dot-y {
+            background: #ffbd2e;
+        }
+
+        #terminal-dots .dot-g {
+            background: #27c93f;
+        }
+
+        #terminal-output {
+            padding: 8px 14px;
+            font-family: 'Menlo', 'Consolas', monospace;
+            font-size: 0.7rem;
+            line-height: 1.8;
+            color: #b0c090;
+            min-height: 52px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .term-line {
+            display: block;
+            white-space: pre-wrap;
+        }
+
+        .term-ok {
+            color: #7ee8a2;
+        }
+
+        .term-err {
+            color: #f87171;
+        }
+
+        .term-dim {
+            color: #666;
+        }
+
+        .term-info {
+            color: #c8f0d8;
+        }
+
+        /* ── Bottom bar ── */
         #bottom-bar {
             display: flex;
             align-items: center;
             gap: 20px;
             width: 100%;
-            max-width: 900px;
-            flex-wrap: nowrap;
+            max-width: 920px;
         }
 
         #status {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: #aaa;
             flex: 1;
         }
 
         #controls-hint {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: #888;
             line-height: 1.8;
         }
@@ -226,7 +401,7 @@
             color: #111;
             cursor: pointer;
             font-family: inherit;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 300;
             padding: 4px 12px;
             box-shadow: 3px 3px 0 #111;
@@ -250,7 +425,7 @@
             color: #111;
             cursor: pointer;
             font-family: inherit;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 300;
             padding: 4px 12px;
             box-shadow: 3px 3px 0 #111;
@@ -267,13 +442,14 @@
             box-shadow: none;
         }
 
-        /* ── Debug panels (left to right, below main row) ── */
+        /* ── Debug panels ── */
         #debug-panels {
             display: flex;
             flex-direction: row;
             gap: 12px;
+            padding: 0 24px 24px;
             width: 100%;
-            max-width: 900px;
+            max-width: 920px;
         }
 
         .debug-section {
@@ -286,7 +462,7 @@
         }
 
         .debug-section h3 {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 400;
             letter-spacing: 0.06em;
             text-transform: uppercase;
@@ -323,7 +499,6 @@
             white-space: pre;
         }
 
-        /* ── Hidden file input ── */
         #rom-input {
             display: none;
         }
@@ -339,10 +514,17 @@
 
             <!-- Shrimp editor -->
             <div id="editor-pane">
-                <div id="shrimp-header">
-                    <strong>🦐 Shrimp</strong>
-                    <span>pong.s</span>
-                    <button id="compile-btn" disabled>▶ Compile &amp; Run</button>
+                <div id="editor-header">
+                    <span id="logo">🦐 Shrimp</span>
+                    <div id="tab-bar"></div>
+                    <div id="examples-wrap">
+                        <button class="hdr-btn" id="examples-btn">Examples ▾</button>
+                        <div id="examples-menu" class="hidden">
+                            <div class="menu-item" data-example="pong">🏓 Pong</div>
+                        </div>
+                    </div>
+                    <button class="hdr-btn" id="new-file-btn">+ New</button>
+                    <button id="compile-btn" disabled>▶ Run</button>
                 </div>
                 <textarea id="code-editor" spellcheck="false"></textarea>
                 <div id="compile-error"></div>
@@ -355,7 +537,7 @@
                     <div id="screen-placeholder">
                         <div class="ph-icon">🕹️</div>
                         <div class="ph-text">
-                            Press <strong>▶ Compile &amp; Run</strong><br />
+                            Press <strong>▶ Run</strong> to compile &amp; play<br />
                             or load a .gb ROM
                         </div>
                     </div>
@@ -364,9 +546,24 @@
 
         </div>
 
+        <!-- Terminal panel -->
+        <div id="terminal-panel">
+            <div id="terminal-header">
+                <div id="terminal-dots">
+                    <span class="dot-r"></span>
+                    <span class="dot-y"></span>
+                    <span class="dot-g"></span>
+                </div>
+                shrimp compiler — output
+            </div>
+            <div id="terminal-output">
+                <span class="term-line term-dim">Waiting for compilation…</span>
+            </div>
+        </div>
+
         <!-- Bottom bar — fixed layout, never shifts -->
         <div id="bottom-bar">
-            <div id="status">Load a ROM to start.</div>
+            <div id="status">Ready.</div>
             <div id="controls-hint">
                 Arrow keys: D-pad &nbsp;·&nbsp; Z: A &nbsp;·&nbsp; X: B &nbsp;·&nbsp;
                 Enter: Start &nbsp;·&nbsp; Shift: Select
@@ -378,12 +575,12 @@
                 <button class="dbg-btn" data-target="memmap-section">Memory</button>
                 <button class="dbg-btn" data-target="ilog-section">Instructions</button>
             </div>
-        </div> <!-- #bottom-bar -->
+        </div>
 
-    </div> <!-- #center-wrap -->
+    </div><!-- #center-wrap -->
 
-    <!-- Debug panels — outside center-wrap so they don't affect vertical centering -->
-    <div id="debug-panels" style="padding: 0 24px 24px; width: 100%; max-width: 900px;">
+    <!-- Debug panels outside center-wrap so they don't affect vertical centering -->
+    <div id="debug-panels">
         <div class="debug-section" id="tileset-section" style="display:none">
             <h3>VRAM Tileset</h3>
             <canvas id="tileset-canvas" class="debug-canvas" width="128" height="192"></canvas>
