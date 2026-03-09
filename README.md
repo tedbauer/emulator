@@ -27,7 +27,7 @@ LIBRARY_PATH=/opt/homebrew/lib ./target/debug/emulator roms/tetris.rom
 LIBRARY_PATH=/opt/homebrew/lib ./target/release/emulator roms/kirby_dream_land_game.rom
 ```
 
-Place your ROM files in the `roms/` directory (not included — provide your own legally-obtained copies).
+Place your ROM files in the `roms/` directory.
 
 ## Controls
 
