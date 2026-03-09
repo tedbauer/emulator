@@ -995,12 +995,14 @@ impl Codegen {
         // In: D=ty, E=tx, B=tile
         // BG map at $9800; address = $9800 + ty*32 + tx
         self.place_label("__builtin_set_bg_tile");
+        // Save B (tile) — we need B as scratch for ty
+        self.push_bc();
+
         // HL = $9800 + D*32 + E
         self.ld_a_d();  // A = ty
-        self.ld_b_a(); // B = ty  (save for L computation)
+        self.ld_b_a();  // B = ty  (save for L computation)
 
         // H = $98 + (ty >> 3)  — the high byte of the BG map address.
-        // SRL A three times (CB 3F = SRL A, logical right shift).
         self.emit(0xCB); self.emit(0x3F); // SRL A  → ty>>1
         self.emit(0xCB); self.emit(0x3F); // SRL A  → ty>>2
         self.emit(0xCB); self.emit(0x3F); // SRL A  → ty>>3
@@ -1021,7 +1023,9 @@ impl Codegen {
         self.ld_a_h2();
         self.emit(0xCE); self.emit(0x00); // ADC A, $00
         self.ld_h_a();
-        // Store tile
+
+        // Restore B (tile), store it at (HL)
+        self.pop_bc();
         self.ld_a_b();
         self.ld_hl_a();
         self.ret();
