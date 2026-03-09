@@ -26,10 +26,21 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
             min-height: 100vh;
+            gap: 0;
+            padding: 0;
+        }
+
+        /* Vertically centers main-row + bottom-bar. Debug panels sit outside. */
+        #center-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             gap: 16px;
             padding: 24px;
+            width: 100%;
         }
 
         /* ── Main row: editor left, GB screen right ── */
@@ -138,6 +149,7 @@
         }
 
         #screen-wrap {
+            position: relative;
             border: 2px solid #111;
             border-radius: 12px;
             overflow: hidden;
@@ -152,6 +164,37 @@
             image-rendering: pixelated;
             width: 480px;
             display: block;
+        }
+
+        #screen-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: #1a1a1a;
+            color: #555;
+            font-size: 0.82rem;
+            font-style: italic;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        #screen-placeholder .ph-icon {
+            font-size: 2.4rem;
+            opacity: 0.25;
+        }
+
+        #screen-placeholder .ph-text {
+            text-align: center;
+            line-height: 1.8;
+            opacity: 0.5;
+        }
+
+        #screen-placeholder.hidden {
+            display: none;
         }
 
         /* ── Bottom bar (always the same height — never shifts) ── */
@@ -289,47 +332,58 @@
 
 <body>
 
-    <!-- Main row: editor + GB screen -->
-    <div id="main-row">
+    <div id="center-wrap">
 
-        <!-- Shrimp editor -->
-        <div id="editor-pane">
-            <div id="shrimp-header">
-                <strong>🦐 Shrimp</strong>
-                <span>pong.s</span>
-                <button id="compile-btn" disabled>▶ Compile &amp; Run</button>
+        <!-- Main row: editor + GB screen -->
+        <div id="main-row">
+
+            <!-- Shrimp editor -->
+            <div id="editor-pane">
+                <div id="shrimp-header">
+                    <strong>🦐 Shrimp</strong>
+                    <span>pong.s</span>
+                    <button id="compile-btn" disabled>▶ Compile &amp; Run</button>
+                </div>
+                <textarea id="code-editor" spellcheck="false"></textarea>
+                <div id="compile-error"></div>
             </div>
-            <textarea id="code-editor" spellcheck="false"></textarea>
-            <div id="compile-error"></div>
-        </div>
 
-        <!-- GB screen -->
-        <div id="screen-pane">
-            <div id="screen-wrap">
-                <canvas id="screen" width="160" height="144"></canvas>
+            <!-- GB screen -->
+            <div id="screen-pane">
+                <div id="screen-wrap">
+                    <canvas id="screen" width="160" height="144"></canvas>
+                    <div id="screen-placeholder">
+                        <div class="ph-icon">🕹️</div>
+                        <div class="ph-text">
+                            Press <strong>▶ Compile &amp; Run</strong><br />
+                            or load a .gb ROM
+                        </div>
+                    </div>
+                </div>
             </div>
+
         </div>
 
-    </div>
+        <!-- Bottom bar — fixed layout, never shifts -->
+        <div id="bottom-bar">
+            <div id="status">Load a ROM to start.</div>
+            <div id="controls-hint">
+                Arrow keys: D-pad &nbsp;·&nbsp; Z: A &nbsp;·&nbsp; X: B &nbsp;·&nbsp;
+                Enter: Start &nbsp;·&nbsp; Shift: Select
+            </div>
+            <label class="load-rom-btn" for="rom-input">Load ROM</label>
+            <input type="file" id="rom-input" accept=".gb,.rom" />
+            <div id="debug-toggles">
+                <button class="dbg-btn" data-target="tileset-section">Tileset</button>
+                <button class="dbg-btn" data-target="memmap-section">Memory</button>
+                <button class="dbg-btn" data-target="ilog-section">Instructions</button>
+            </div>
+        </div> <!-- #bottom-bar -->
 
-    <!-- Bottom bar — fixed layout, never shifts -->
-    <div id="bottom-bar">
-        <div id="status">Load a ROM to start.</div>
-        <div id="controls-hint">
-            Arrow keys: D-pad &nbsp;·&nbsp; Z: A &nbsp;·&nbsp; X: B &nbsp;·&nbsp;
-            Enter: Start &nbsp;·&nbsp; Shift: Select
-        </div>
-        <label class="load-rom-btn" for="rom-input">Load ROM</label>
-        <input type="file" id="rom-input" accept=".gb,.rom" />
-        <div id="debug-toggles">
-            <button class="dbg-btn" data-target="tileset-section">Tileset</button>
-            <button class="dbg-btn" data-target="memmap-section">Memory</button>
-            <button class="dbg-btn" data-target="ilog-section">Instructions</button>
-        </div>
-    </div>
+    </div> <!-- #center-wrap -->
 
-    <!-- Debug panels — appear left to right below main row -->
-    <div id="debug-panels">
+    <!-- Debug panels — outside center-wrap so they don't affect vertical centering -->
+    <div id="debug-panels" style="padding: 0 24px 24px; width: 100%; max-width: 900px;">
         <div class="debug-section" id="tileset-section" style="display:none">
             <h3>VRAM Tileset</h3>
             <canvas id="tileset-canvas" class="debug-canvas" width="128" height="192"></canvas>

@@ -12,6 +12,7 @@ const ilogPre = document.getElementById("ilog-pre");
 
 const romInput = document.getElementById("rom-input");
 const status = document.getElementById("status");
+const placeholder = document.getElementById("screen-placeholder");
 
 const codeEditor = document.getElementById("code-editor");
 const compileBtn = document.getElementById("compile-btn");
@@ -216,6 +217,7 @@ async function startEmulator(romBytes) {
     initAudio();
     if (audioCtx.state === "suspended") await audioCtx.resume();
     emulator = new Emulator(romBytes);
+    placeholder.classList.add("hidden");
     lastFrameTime = performance.now() - FRAME_MS;
     loop();
 }
