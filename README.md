@@ -33,11 +33,10 @@ curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 wasm-pack build --target web
 ```
 
-Then serve the project root with any static file server (the browser requires
-a real server for `import` / WASM — `file://` won't work):
+Then serve the project root with any static file server:
 
 ```bash
-# Python 3 (quick)
+# Python 3
 python3 -m http.server 8080
 
 # Or npx
