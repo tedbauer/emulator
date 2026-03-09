@@ -7,16 +7,23 @@ pub trait MemoryAccess {
     fn write_byte(&mut self, addr: u16, value: u8);
     fn write_word(&mut self, addr: u16, value: u16);
     fn generate_tileset_rgba(&self, buffer: &mut [u8]);
+    fn generate_memory_rgba(&self, buffer: &mut [u8]);
+    /// Update joypad state. buttons/dpad: bit=0 means pressed (active-low).
+    fn set_joypad(&mut self, buttons: u8, dpad: u8);
 }
 
 pub struct Memory {
     pub bios: [u8; 256],
-    rom: [u8; 16384],
-
-    // TODO: split up regions
+    rom: Vec<u8>,
     the_rest: [u8; 49152],
-
     bios_enabled: bool,
+    // MBC1 bank switching
+    mbc_type: u8,      // cartridge type from 0x0147 (0=ROM only, 1=MBC1)
+    rom_bank: usize,   // current ROM bank for 0x4000-0x7FFF (MBC1)
+    // Joypad state: 0=pressed, 1=released (active low)
+    pub joypad_buttons: u8,
+    pub joypad_dpad: u8,
+    joypad_select: u8,
 }
 
 impl fmt::Debug for dyn MemoryAccess {
@@ -34,50 +41,127 @@ impl fmt::Debug for dyn MemoryAccess {
 }
 
 impl Memory {
-    pub fn initialize() -> Self {
+    pub fn initialize(rom_path: &str) -> Self {
         let bios: [u8; 256] = include_bytes!("../roms/bios.rom").clone();
-        let rom: [u8; 16384] = include_bytes!("../roms/kirby_dream_land_game.rom")[0..16384]
-            .try_into()
-            .unwrap();
-
+        let rom: Vec<u8> = std::fs::read(rom_path)
+            .unwrap_or_else(|e| panic!("Failed to read ROM '{}': {}", rom_path, e));
+        let mbc_type = if rom.len() > 0x148 { rom[0x147] } else { 0 };
         Self {
             bios,
+            mbc_type,
+            rom_bank: 1,
             rom,
             the_rest: [0; 49152],
-
             bios_enabled: true,
+            joypad_buttons: 0xFF,
+            joypad_dpad: 0xFF,
+            joypad_select: 0x30,
+        }
+    }
+
+    /// Initialize with ROM data provided at runtime (used by WASM frontend).
+    pub fn initialize_with_rom(rom_data: Vec<u8>) -> Self {
+        let bios: [u8; 256] = include_bytes!("../roms/bios.rom").clone();
+        let mbc_type = if rom_data.len() > 0x148 { rom_data[0x147] } else { 0 };
+        Self {
+            bios,
+            mbc_type,
+            rom_bank: 1,
+            rom: rom_data,
+            the_rest: [0; 49152],
+            bios_enabled: true,
+            joypad_buttons: 0xFF,
+            joypad_dpad: 0xFF,
+            joypad_select: 0x30,
         }
     }
 }
 
 impl MemoryAccess for Memory {
     fn read_byte(&self, addr: u16) -> u8 {
-        if usize::from(addr) < self.bios.len() && self.bios_enabled {
-            self.bios[addr as usize]
-        } else if usize::from(addr) < self.rom.len() {
-            self.rom[addr as usize]
+        if addr == 0xFF00 {
+            // Joypad: P15(bit5)=0 selects buttons row, P14(bit4)=0 selects d-pad row
+            let select = self.joypad_select;
+            let result = if select & 0x20 == 0 {
+                // P15=low: buttons row (A=0, B=1, Select=2, Start=3)
+                0xC0 | (self.joypad_select & 0x30) | (self.joypad_buttons & 0x0F)
+            } else if select & 0x10 == 0 {
+                // P14=low: d-pad row (Right=0, Left=1, Up=2, Down=3)
+                0xC0 | (self.joypad_select & 0x30) | (self.joypad_dpad & 0x0F)
+            } else {
+                0xFF
+            };
+            return result;
+        }
+        let addr = addr as usize;
+        if addr < self.bios.len() && self.bios_enabled {
+            self.bios[addr]
+        } else if addr < 0x4000 {
+            // ROM bank 0 always at 0x0000-0x3FFF
+            if addr < self.rom.len() { self.rom[addr] } else { 0xFF }
+        } else if addr < 0x8000 {
+            // 0x4000-0x7FFF: switchable ROM bank (MBC1) or bank 1 (ROM only)
+            let bank = if self.mbc_type >= 1 { self.rom_bank } else { 1 };
+            let offset = (bank * 0x4000) + (addr - 0x4000);
+            if offset < self.rom.len() { self.rom[offset] } else { 0xFF }
+        } else if addr < 0x10000 {
+            // 0x8000+: the_rest (VRAM, WRAM, OAM, IO, HRAM)
+            let rest_idx = addr - 0x8000;
+            if rest_idx < self.the_rest.len() { self.the_rest[rest_idx] } else { 0xFF }
         } else {
-            self.the_rest[addr as usize - self.rom.len()]
+            0xFF
         }
     }
 
     fn read_word(&self, addr: u16) -> u16 {
-        (self.read_byte(addr) as u16) + ((self.read_byte(addr + 1) as u16) << 8)
+        (self.read_byte(addr) as u16) | ((self.read_byte(addr.wrapping_add(1)) as u16) << 8)
     }
 
     fn write_byte(&mut self, addr: u16, value: u8) {
-        if usize::from(addr) < self.bios.len() {
-            self.bios[addr as usize] = value;
-        } else if usize::from(addr) < self.bios.len() + self.rom.len() {
-            self.rom[addr as usize] = value;
-        } else {
-            self.the_rest[addr as usize - self.rom.len()] = value;
+        if addr == 0xFF00 {
+            self.joypad_select = value & 0x30;
+            return;
         }
+        // MBC1: ROM bank select (writes to 0x2000-0x3FFF)
+        if self.mbc_type >= 1 && addr >= 0x2000 && addr < 0x4000 {
+            let bank = (value & 0x1F) as usize;
+            self.rom_bank = if bank == 0 { 1 } else { bank };
+            return;
+        }
+        // MBC1: RAM enable (0x0000-0x1FFF) — ignore
+        if self.mbc_type >= 1 && addr < 0x2000 { return; }
+        let addr = addr as usize;
+        if addr < self.bios.len() && self.bios_enabled {
+            // writes to BIOS region ignored
+        } else if addr < 0x8000 {
+            // ROM is read-only
+        } else if addr == 0xFF50 {
+            // Writing to 0xFF50 disables the BIOS
+            if value != 0 {
+                self.bios_enabled = false;
+            }
+        } else if addr == 0xFF46 {
+            // OAM DMA transfer: copy 160 bytes from (value << 8) to 0xFE00
+            let src_base = (value as u16) << 8;
+            for i in 0..160u16 {
+                let byte = self.read_byte(src_base + i);
+                let dst = 0xFE00u16 + i;
+                let rest_idx = (dst as usize) - 0x8000;
+                self.the_rest[rest_idx] = byte;
+            }
+        } else if addr < 0x10000 {
+            // the_rest covers 0x8000-0xFFFF, same mapping as read_byte
+            let rest_idx = addr - 0x8000;
+            if rest_idx < self.the_rest.len() {
+                self.the_rest[rest_idx] = value;
+            }
+        }
+
     }
 
     fn write_word(&mut self, addr: u16, value: u16) {
         self.write_byte(addr, value as u8);
-        self.write_byte(addr + 1, ((value & 0xFF00) >> 8) as u8)
+        self.write_byte(addr.wrapping_add(1), (value >> 8) as u8);
     }
 
     fn generate_tileset_rgba(&self, buffer: &mut [u8]) {
@@ -89,33 +173,24 @@ impl MemoryAccess for Memory {
             [0, 0, 0, 255],       // Black
         ];
 
-        // Use `usize` for all pixel-grid and buffer index calculations.
-        // This is the native type for indexing in Rust.
         let output_width_pixels: usize = 128; // 16 tiles * 8 pixels/tile
 
-        // The loop variable `tile_index` is already `usize` by default.
         for tile_index in 0..384 {
-            // `usize` math for positioning tiles in the output image
             let tile_grid_x: usize = tile_index % 16;
             let tile_grid_y: usize = tile_index / 16;
             let base_pixel_x: usize = tile_grid_x * 8;
             let base_pixel_y: usize = tile_grid_y * 8;
 
-            // VRAM tile data starts at 0x8000. We calculate the 16-bit Game Boy
-            // address separately from our `usize` pixel grid math.
             let tile_addr_start = 0x8000_u16.wrapping_add(tile_index as u16 * 16);
 
-            // The loop variable `row` is `usize`.
-            for row in 0..8 {
+            for row in 0..8usize {
                 let current_pixel_y: usize = base_pixel_y + row;
 
-                // Calculate the 16-bit address for the two bytes making up the pixel row.
                 let row_addr = tile_addr_start.wrapping_add(row as u16 * 2);
                 let byte1 = self.read_byte(row_addr);
                 let byte2 = self.read_byte(row_addr.wrapping_add(1));
 
-                // The loop variable `pixel` is `usize`.
-                for pixel in 0..8 {
+                for pixel in 0..8usize {
                     let color_bit_1 = (byte1 >> (7 - pixel)) & 1;
                     let color_bit_2 = (byte2 >> (7 - pixel)) & 1;
                     let color_index = (color_bit_2 << 1) | color_bit_1;
@@ -124,44 +199,43 @@ impl MemoryAccess for Memory {
 
                     let current_pixel_x: usize = base_pixel_x + pixel;
 
-                    // **THIS IS THE CRITICAL PART**
-                    // All variables in this calculation are now explicitly `usize`.
-                    // The result, `buffer_index`, is guaranteed to be `usize`.
                     let buffer_index: usize =
                         (current_pixel_y * output_width_pixels + current_pixel_x) * 4;
 
-                    // This will now compile correctly because `buffer_index` is a `usize`.
-                    buffer[buffer_index] = color_rgba[0]; // R
-                    buffer[buffer_index + 1] = color_rgba[1]; // G
-                    buffer[buffer_index + 2] = color_rgba[2]; // B
-                    buffer[buffer_index + 3] = color_rgba[3]; // A
-                }
-            }
-        }
-    }
-
-    /*
-    fn dump_tileset(&self) {
-        use image::{Rgb, RgbImage};
-
-        let mut img = RgbImage::new(200, 200);
-
-        for address in (0x8000..0x87FF).step_by(16) {
-            for line in 0..8 {
-                let line_byte = self.read_byte(address + line * 2);
-                let tile_x = (address - 0x8000) / 16;
-                for pixel in 0..8 {
-                    if ((1 << (7 - pixel)) & line_byte) > 0 {
-                        img.put_pixel((tile_x + pixel) as u32, (line as u32), Rgb([0, 0, 0]))
-                    } else {
-                        img.put_pixel((tile_x + pixel) as u32, (line as u32), Rgb([255, 255, 255]))
+                    if buffer_index + 3 < buffer.len() {
+                        buffer[buffer_index] = color_rgba[0]; // R
+                        buffer[buffer_index + 1] = color_rgba[1]; // G
+                        buffer[buffer_index + 2] = color_rgba[2]; // B
+                        buffer[buffer_index + 3] = color_rgba[3]; // A
                     }
                 }
             }
         }
-
-        fs::create_dir("debug").unwrap();
-        img.save("debug/tiles.png");
     }
-    */
+
+    fn generate_memory_rgba(&self, buffer: &mut [u8]) {
+        for address in 0..=65535u16 {
+            let value = self.read_byte(address);
+
+            let color: [u8; 4] = match value {
+                0x00 => [255, 255, 255, 255],
+                0xFF => [255, 0, 0, 255],
+                _ => {
+                    let r = value.wrapping_mul(7);
+                    let g = value.wrapping_mul(13);
+                    let b = value.wrapping_mul(23);
+                    [r, g, b, 255]
+                }
+            };
+
+            let buffer_index = address as usize * 4;
+
+            if buffer_index + 3 < buffer.len() {
+                let buffer_slice = &mut buffer[buffer_index..buffer_index + 4];
+                buffer_slice.copy_from_slice(&color);
+            }
+        }
+    }
+    fn set_joypad(&mut self, buttons: u8, dpad: u8) { self.joypad_buttons = buttons; self.joypad_dpad = dpad; }
 }
+

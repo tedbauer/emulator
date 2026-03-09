@@ -12,12 +12,21 @@ use cpu::Cpu;
 use gpu::Gpu;
 use memory::{Memory, MemoryAccess};
 
+use std::collections::VecDeque;
+// ... other imports
+
+// ADD: A constant for our log capacity
+const LOG_CAPACITY: usize = 20;
+
 // Game Boy screen dimensions
 const SCREEN_WIDTH: usize = 160;
 const SCREEN_HEIGHT: usize = 144;
 
 const TILESET_WIDTH: usize = 128; // 16 tiles across
 const TILESET_HEIGHT: usize = 192; // 24 tiles down
+
+const MEMORY_WIDTH: usize = 256;
+const MEMORY_HEIGHT: usize = 256;
 
 /// The main Emulator struct that will be exposed to JavaScript.
 #[wasm_bindgen]
@@ -29,8 +38,9 @@ pub struct Emulator {
     // JavaScript will read from this buffer to draw to the canvas.
     pixel_buffer: Vec<u8>,
 
-    // ADD: A buffer for our tileset visualization
     tileset_buffer: Vec<u8>,
+    memory_buffer: Vec<u8>,
+    instruction_log: VecDeque<String>,
 }
 
 #[wasm_bindgen]
@@ -42,9 +52,8 @@ impl Emulator {
         // Set a panic hook to get better error messages in the browser console.
         panic::set_hook(Box::new(console_error_panic_hook::hook));
 
-        // Note: We are assuming your `Memory` module can be initialized
-        // with ROM data like this. You may need to adjust `Memory::initialize`.
-        let mut memory = Box::new(Memory::initialize()) as Box<dyn MemoryAccess>;
+        // Initialize memory with the ROM data passed from JavaScript.
+        let mut memory = Box::new(Memory::initialize_with_rom(rom_data)) as Box<dyn MemoryAccess>;
 
         Emulator {
             cpu: Cpu::initialize(),
@@ -53,6 +62,8 @@ impl Emulator {
             // Initialize the pixel buffer. Its size will never change.
             pixel_buffer: vec![0; SCREEN_WIDTH * SCREEN_HEIGHT * 4],
             tileset_buffer: vec![0; TILESET_WIDTH * TILESET_HEIGHT * 4],
+            memory_buffer: vec![0; MEMORY_WIDTH * MEMORY_HEIGHT * 4],
+            instruction_log: VecDeque::with_capacity(LOG_CAPACITY),
         }
     }
 
@@ -62,7 +73,9 @@ impl Emulator {
         // The original loop from main.rs is now inside tick().
         // We loop until the GPU has produced a new frame.
         loop {
-            let time_increment = self.cpu.step(&mut self.memory);
+            let (time_increment, instruction_string) = self.cpu.step(&mut self.memory);
+            self.log_instruction(instruction_string);
+            self.cpu.handle_interrupts(&mut self.memory);
 
             // The GPU step function tells us when a frame is ready
             if let Some(framebuffer) = self.gpu.step(time_increment, &mut self.memory) {
@@ -78,9 +91,28 @@ impl Emulator {
 
                 // ADD: Update the tileset buffer on every completed frame
                 self.memory.generate_tileset_rgba(&mut self.tileset_buffer);
+                self.memory.generate_memory_rgba(&mut self.memory_buffer);
+
                 break;
             }
         }
+    }
+
+    fn log_instruction(&mut self, instruction: String) {
+        if self.instruction_log.len() == LOG_CAPACITY {
+            self.instruction_log.pop_back();
+        }
+        self.instruction_log.push_front(instruction);
+    }
+
+    /// Returns the entire instruction log as a single formatted string.
+    #[wasm_bindgen]
+    pub fn get_instruction_log(&self) -> String {
+        self.instruction_log
+            .iter()
+            .cloned()
+            .collect::<Vec<String>>()
+            .join("\n")
     }
 
     /// Returns a pointer to the internal pixel buffer.
@@ -93,6 +125,11 @@ impl Emulator {
     #[wasm_bindgen]
     pub fn tileset_ptr(&self) -> *const u8 {
         self.tileset_buffer.as_ptr()
+    }
+
+    #[wasm_bindgen]
+    pub fn memory_ptr(&self) -> *const u8 {
+        self.memory_buffer.as_ptr()
     }
 
     /// Handles key down events from the browser.
