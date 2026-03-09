@@ -56,6 +56,70 @@ via buttons below the game screen:
 - **Instructions** — scrolling log of the last 64 executed CPU instructions
 
 
+## Shrimp
+
+Shrimp is a high-level scripting language for writing Game Boy ROMs. Source files use the `.s` extension.
+
+### Syntax quickstart
+
+```
+from core import pressed, set_sprite, Button
+
+tile ball:
+    .333....
+    3333....
+    33333333
+    33333333
+    3333....
+    .333....
+    ........
+    ........
+
+let bx = 80          # type inferred as u8
+let vy: i8 = -1      # explicit signed type
+
+init:
+    set_sprite(0, bx, 72, ball)
+
+on vblank:           # called every frame (~59.7fps)
+    bx := bx + 1
+    set_sprite(0, bx, 72, ball)
+```
+
+### Building a ROM
+
+```bash
+# Build the compiler
+cargo build -p compiler --release
+
+# Compile a .s file
+./target/release/shrimp games/pong.s -o games/pong.gb
+```
+
+Then load `games/pong.gb` in the emulator (native or browser).
+
+### Demo
+
+`games/pong.s` — a playable Pong game in ~50 lines of Shrimp.  
+Arrow keys move the paddle. The ball bounces off walls and the paddle.
+
+### Language reference
+
+| Construct | Example |
+|---|---|
+| Immutable declaration | `let x = 10` |
+| Reassignment | `x := x + 1` |
+| Typed declaration | `let v: i8 = -1` |
+| Tile definition | `tile name: ...8 rows of 8 chars...` |
+| Init block | `init: ...` |
+| VBlank handler | `on vblank: ...` |
+| If / elif / else | `if x > 10: ...` |
+| While loop | `while x < 100: ...` |
+| Function | `fn foo(a: u8): ...` |
+
+Built-ins (imported from `core`): `pressed(Button.X)`, `just_pressed(Button.X)`,
+`set_sprite(i, x, y, tile)`, `set_bg_tile(tx, ty, tile)`, `set_scroll(sx, sy)`.
+
 ## Running
 
 ### Native
@@ -101,8 +165,20 @@ src/
   memory.rs  — Memory map, MBC1 bank switching, OAM DMA, joypad register
   main.rs    — SDL2 window + audio, frame-driven main loop (native)
   lib.rs     — WASM bindings: tick loop, keyboard input, framebuffer export
-index.html   — Browser frontend (drop-zone ROM loader, canvas display)
-index.js     — JS glue: WASM init, render loop, keyboard events
+compiler/
+  src/
+    lexer.rs    — Shrimp tokenizer (indent/dedent tracking)
+    parser.rs   — Recursive-descent parser → AST
+    resolver.rs — Symbol table, WRAM layout, tile index assignment
+    codegen.rs  — LR35902 code generator (label-resolved byte output)
+    rom.rs      — ROM binary writer (header, tile data, layout)
+    lib.rs      — compile(src) → Vec<u8> entry point
+    main.rs     — shrimp CLI
+web/
+  index.html   — Browser frontend
+  index.js     — JS glue: WASM init, render loop, keyboard, Web Audio
+games/
+  pong.s       — Pong written in Shrimp
 ```
 
 ## Notes

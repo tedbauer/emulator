@@ -1,0 +1,14 @@
+[package]
+name = "compiler"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "shrimp"
+path = "src/main.rs"
+
+[lib]
+name = "compiler"
+path = "src/lib.rs"
+
+[dependencies]

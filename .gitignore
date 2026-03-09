@@ -14,3 +14,4 @@
 # Debug artifacts
 /debugging
 build_log.txt
+/games/*.gb
