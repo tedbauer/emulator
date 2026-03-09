@@ -19,48 +19,67 @@ const TILESET_W = 128;
 const TILESET_H = 192;
 const MEMMAP_W = 256;
 const MEMMAP_H = 256;
-const SAMPLE_RATE = 44100;
 
 let emulator = null;
 let animFrame = null;
 
 // ---------------------------------------------------------------------------
-// Web Audio
+// Web Audio — ScriptProcessorNode + ring buffer.
+//
+// Using scheduled AudioBufferSourceNode caused a 10-15s delay because the
+// AudioContext was suspended during async WASM init, so currentTime stayed
+// near 0 while hundreds of rAF frames queued audio far into the future.
+//
+// The ring buffer approach has a hard capacity cap: if the emulator runs
+// ahead, excess samples are dropped, so latency is always bounded to
+// at most RING_FRAMES / 44100 ≈ 93ms.
 // ---------------------------------------------------------------------------
 
+const SAMPLE_RATE = 44100;
+const SCRIPT_BUF = 2048;          // frames per callback (~46ms)
+const RING_FRAMES = 4096;          // max ring depth (~93ms)
+const RING_DROP_AT = RING_FRAMES * 0.8;
+
 let audioCtx = null;
-let nextAudioTime = 0;           // scheduled end of queued audio (audioCtx.currentTime)
-const AUDIO_AHEAD = 0.08;        // seconds to buffer ahead (80 ms)
+let scriptNode = null;
+const ringL = new Float32Array(RING_FRAMES);
+const ringR = new Float32Array(RING_FRAMES);
+let writeHead = 0;
+let readHead = 0;
+
+function ringAvailable() {
+    return (writeHead - readHead + RING_FRAMES) % RING_FRAMES;
+}
 
 function initAudio() {
     if (audioCtx) return;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SAMPLE_RATE });
-    nextAudioTime = audioCtx.currentTime + AUDIO_AHEAD;
+    scriptNode = audioCtx.createScriptProcessor(SCRIPT_BUF, 0, 2);
+    scriptNode.onaudioprocess = ({ outputBuffer }) => {
+        const L = outputBuffer.getChannelData(0);
+        const R = outputBuffer.getChannelData(1);
+        for (let i = 0; i < L.length; i++) {
+            if (ringAvailable() > 0) {
+                L[i] = ringL[readHead];
+                R[i] = ringR[readHead];
+                readHead = (readHead + 1) % RING_FRAMES;
+            } else {
+                L[i] = R[i] = 0; // underrun → silence
+            }
+        }
+    };
+    scriptNode.connect(audioCtx.destination);
 }
 
-function scheduleAudio(samples) {
-    if (!audioCtx || samples.length < 2) return;
-
-    const numFrames = samples.length >> 1; // stereo interleaved → frame count
-    const buf = audioCtx.createBuffer(2, numFrames, SAMPLE_RATE);
-    const l = buf.getChannelData(0);
-    const r = buf.getChannelData(1);
-    for (let i = 0; i < numFrames; i++) {
-        l[i] = samples[i * 2];
-        r[i] = samples[i * 2 + 1];
+function pushAudio(samples) {
+    if (!audioCtx) return;
+    const n = samples.length >> 1; // stereo interleaved → frames
+    for (let i = 0; i < n; i++) {
+        if (ringAvailable() >= RING_DROP_AT) break; // ring full — drop excess
+        ringL[writeHead] = samples[i * 2];
+        ringR[writeHead] = samples[i * 2 + 1];
+        writeHead = (writeHead + 1) % RING_FRAMES;
     }
-
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    src.connect(audioCtx.destination);
-
-    const now = audioCtx.currentTime;
-    if (nextAudioTime < now) {
-        // We fell behind — resync
-        nextAudioTime = now + AUDIO_AHEAD;
-    }
-    src.start(nextAudioTime);
-    nextAudioTime += buf.duration;
 }
 
 // ---------------------------------------------------------------------------
@@ -90,8 +109,9 @@ async function startEmulator(romBytes) {
         animFrame = null;
     }
 
+    // initAudio() must be called *after* a user gesture; the file picker or
+    // drag-and-drop satisfies that requirement in all major browsers.
     initAudio();
-    // Resume context if suspended (browser autoplay policy)
     if (audioCtx.state === "suspended") await audioCtx.resume();
 
     emulator = new Emulator(romBytes);
@@ -109,10 +129,10 @@ function loop() {
     const pixels = new Uint8ClampedArray(emulator.get_framebuffer());
     ctx.putImageData(new ImageData(pixels, SCREEN_W, SCREEN_H), 0, 0);
 
-    // Audio — drain samples and schedule playback
-    scheduleAudio(emulator.get_audio_samples());
+    // Audio — push this frame's samples into the ring buffer
+    pushAudio(emulator.get_audio_samples());
 
-    // Debug views — only when visible
+    // Debug views — only computed when visible
     if (visible["tileset-section"]) {
         const tileset = new Uint8ClampedArray(emulator.get_tileset());
         tilesetCtx.putImageData(new ImageData(tileset, TILESET_W, TILESET_H), 0, 0);
@@ -129,7 +149,7 @@ function loop() {
 }
 
 // ---------------------------------------------------------------------------
-// Keyboard input — also resume AudioContext on first keypress
+// Keyboard input — also resume AudioContext on keypress as a fallback
 // ---------------------------------------------------------------------------
 
 const PREVENT_SCROLL = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"]);
