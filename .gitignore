@@ -9,7 +9,7 @@
 /bios/*.rom
 
 # WASM build output
-/pkg
+/web/pkg
 
 # Debug artifacts
 /debugging

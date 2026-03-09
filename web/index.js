@@ -119,7 +119,7 @@ async function startEmulator(romBytes) {
     emuArea.style.display = "flex";
     status.textContent = "Running.";
 
-    lastFrameTime = performance.now();
+    lastFrameTime = performance.now() - FRAME_MS; // trigger first tick immediately
     loop();
 }
 
@@ -129,12 +129,12 @@ let lastFrameTime = 0;
 
 function loop() {
     const now = performance.now();
-    // Clamp elapsed to FRAME_MS so we never try to catch up more than 1 frame.
-    // Without this a slow JS event (e.g. GC pause) would cause a burst of ticks.
-    const elapsed = Math.min(now - lastFrameTime, FRAME_MS * 1.5);
+    const elapsed = now - lastFrameTime;
 
     if (elapsed >= FRAME_MS) {
-        lastFrameTime = now;
+        // Preserve fractional remainder so rate stays exactly at TARGET_FPS
+        // over many frames. Cap to FRAME_MS to avoid catch-up bursts.
+        lastFrameTime = now - Math.min(elapsed % FRAME_MS, FRAME_MS);
 
         emulator.tick();
 

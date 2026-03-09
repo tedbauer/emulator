@@ -32,18 +32,18 @@ Requires [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/).
 # Install wasm-pack (once)
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-# Build the WASM package
-wasm-pack build --target web
+# Build the WASM package into web/pkg/
+wasm-pack build --target web --out-dir web/pkg
 ```
 
-Then serve the project root with any static file server:
+Then serve the `web/` directory:
 
 ```bash
 # Python 3
-python3 -m http.server 8080
+python3 -m http.server 8080 --directory web
 
 # Or npx
-npx serve .
+npx serve web
 ```
 
 Open `http://localhost:8080` and drop a `.gb` ROM onto the page.
