@@ -274,6 +274,28 @@
             overflow-y: auto;
         }
 
+        #editor-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #b0a870;
+            font-size: 0.75rem;
+            line-height: 2;
+            padding: 16px;
+            gap: 4px;
+        }
+
+        #editor-empty strong {
+            color: #888;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
         #compile-error {
             display: none;
             padding: 7px 14px;
@@ -559,6 +581,10 @@
                 <div id="editor-body">
                     <div id="line-numbers">1</div>
                     <textarea id="code-editor" spellcheck="false"></textarea>
+                </div>
+                <div id="editor-empty" class="hidden">
+                    <div>📄</div>
+                    <div>Click <strong>＋ New</strong> or <strong>🦐 Demos ▾</strong><br/>to open a file</div>
                 </div>
                 <div id="compile-error"></div>
             </div>

@@ -20,9 +20,11 @@ const runBtn = document.getElementById("run-btn");
 const newFileBtn = document.getElementById("new-file-btn");
 const demoBtn = document.getElementById("demo-btn");
 const demoPicker = document.getElementById("demo-picker");
-const compileError = document.getElementById("compile-error");
-const tabBar = document.getElementById("tab-bar");
-const termOutput = document.getElementById("terminal-output");
+const compileError  = document.getElementById("compile-error");
+const tabBar        = document.getElementById("tab-bar");
+const termOutput    = document.getElementById("terminal-output");
+const editorBody    = document.getElementById("editor-body");
+const editorEmpty   = document.getElementById("editor-empty");
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
 const SCREEN_W = 160;
@@ -105,10 +107,11 @@ on vblank:
 `;
 
 // ── File system ───────────────────────────────────────────────────────────────
-let files = [];   // [{ id, name, content }]
+let files    = [];   // [{ id, name, content }]
 let activeId = null;
-let nextId = 0;
+let nextId   = 0;
 let untitledCounter = 1;
+let compilerReady   = false;
 
 function createFile(name, content = "") {
     const id = nextId++;
@@ -125,6 +128,13 @@ function saveActiveContent() {
     if (f) f.content = codeEditor.value;
 }
 
+function updateEditorState() {
+    const hasFiles = files.length > 0;
+    editorBody.classList.toggle("hidden", !hasFiles);
+    editorEmpty.classList.toggle("hidden", hasFiles);
+    runBtn.disabled = !(hasFiles && compilerReady);
+}
+
 function switchTo(id) {
     saveActiveContent();
     activeId = id;
@@ -132,6 +142,7 @@ function switchTo(id) {
     codeEditor.value = f ? f.content : "";
     updateLineNumbers();
     renderTabs();
+    updateEditorState();
     document.title = f ? `${f.name} — Shrimp` : "Shrimp Editor";
 }
 
@@ -141,8 +152,11 @@ function closeFile(id) {
     if (idx === -1) return;
     files.splice(idx, 1);
     if (files.length === 0) {
-        // Always keep at least one tab — open a blank one
-        switchTo(createFile(`untitled-${untitledCounter++}.s`, ""));
+        activeId = null;
+        codeEditor.value = "";
+        renderTabs();
+        updateEditorState();
+        document.title = "Shrimp Editor";
     } else {
         switchTo(files[Math.min(idx, files.length - 1)].id);
     }
@@ -406,7 +420,7 @@ romInput.addEventListener("change", () => {
     status.textContent = "Loading…";
     try {
         await Promise.all([initEmu(), initComp()]);
-        runBtn.disabled = false;
+        compilerReady = true;
         status.textContent = "Ready.";
         // Open Pong by default
         switchTo(createFile("pong.s", PONG_SOURCE));
