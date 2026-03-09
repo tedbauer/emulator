@@ -1,10 +1,10 @@
-# Game Boy Emulator
+# 🦐 Shrimp
 
-A Game Boy emulator written in Rust.
+A browser-based Game Boy development environment. Write games in a high-level scripting language, compile them to real Game Boy ROMs, and play them instantly — all in one page.
 
-I started working on this in 2023 as a hobby project, spending a couple of months on it when I had the time. I got far enough to see the Nintendo boot screen before shelving it. In 2026, I picked it back up again and used Claude Sonnet 4.6 and Gemini 3.1 Pro (High), in the Antigravity harness. They picked up where I left off and finished the CPU, GPU, and APU to the point of running full commercial games with input and sound.
+Shrimp includes a custom compiler that targets the LR35902 CPU, a full Game Boy emulator (CPU, GPU, APU), and an integrated code editor with debug tools. Built with Rust and WebAssembly.
 
-![Browser frontend running Kirby's Dream Land with debug panels open](docs/screenshot.png)
+![Shrimp IDE running the platformer demo](docs/screenshot.png)
 
 
 ## Building
@@ -98,10 +98,10 @@ cargo build -p compiler --release
 
 Then load `games/pong.gb` in the emulator (native or browser).
 
-### Demo
+### Demos
 
-`games/pong.s` — a playable Pong game in ~50 lines of Shrimp.  
-Arrow keys move the paddle. The ball bounces off walls and the paddle.
+- `games/pong.s` — a playable Pong game in ~50 lines of Shrimp. Arrow keys move the paddle.
+- `games/platformer.s` — a simple platformer with gravity, jump, and floating platforms.
 
 ### Language reference
 
@@ -179,7 +179,20 @@ web/
   index.js     — JS glue: WASM init, render loop, keyboard, Web Audio
 games/
   pong.s       — Pong written in Shrimp
+  platformer.s — Platformer written in Shrimp
+scripts/
+  deploy.sh    — Deploy web app to tedbauer.github.io/shrimp/
 ```
+
+## Deployment
+
+The Shrimp web IDE is deployed to [tedbauer.github.io/shrimp](https://tedbauer.github.io/shrimp/).
+
+```bash
+./scripts/deploy.sh
+```
+
+This rebuilds both WASMs and copies the web files to the GitHub Pages repo.
 
 ## Notes
 
