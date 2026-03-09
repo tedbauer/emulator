@@ -1,0 +1,7 @@
+#!/bin/sh
+# Run cargo fmt before pushing; reject the push if formatting changes are needed.
+cargo fmt -- --check
+if [ $? -ne 0 ]; then
+    echo "Push rejected: run 'cargo fmt' and commit the changes first."
+    exit 1
+fi
