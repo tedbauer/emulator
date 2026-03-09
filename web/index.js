@@ -15,6 +15,7 @@ const status = document.getElementById("status");
 const placeholder = document.getElementById("screen-placeholder");
 
 const codeEditor = document.getElementById("code-editor");
+const lineNums = document.getElementById("line-numbers");
 const runBtn = document.getElementById("run-btn");
 const newFileBtn = document.getElementById("new-file-btn");
 const demoBtn = document.getElementById("demo-btn");
@@ -129,6 +130,7 @@ function switchTo(id) {
     activeId = id;
     const f = activeFile();
     codeEditor.value = f ? f.content : "";
+    updateLineNumbers();
     renderTabs();
     document.title = f ? `${f.name} — Shrimp` : "Shrimp Editor";
 }
@@ -199,6 +201,18 @@ document.querySelectorAll(".picker-item[data-name]").forEach(item => {
 
 // Close picker when clicking elsewhere
 document.addEventListener("click", () => demoPicker.classList.add("hidden"));
+
+// ── Line numbers ──────────────────────────────────────────────────────────────
+function updateLineNumbers() {
+    const count = (codeEditor.value.match(/\n/g) || []).length + 1;
+    let out = "";
+    for (let i = 1; i <= count; i++) out += i + "\n";
+    lineNums.textContent = out;
+    lineNums.scrollTop = codeEditor.scrollTop;
+}
+
+codeEditor.addEventListener("input", updateLineNumbers);
+codeEditor.addEventListener("scroll", () => { lineNums.scrollTop = codeEditor.scrollTop; });
 
 // ── Tab key in editor ─────────────────────────────────────────────────────────
 codeEditor.addEventListener("keydown", e => {

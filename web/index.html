@@ -62,13 +62,13 @@
 
         #demo-picker {
             position: absolute;
-            top: calc(100% + 4px);
+            top: calc(100% + 6px);
             left: 0;
             right: 0;
-            background: #fff;
-            border: 2px solid #111;
-            border-radius: 10px;
-            box-shadow: 4px 4px 0 #111;
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
             z-index: 200;
             overflow: hidden;
         }
@@ -78,10 +78,11 @@
         }
 
         .picker-item {
-            padding: 10px 14px;
-            font-size: 0.8rem;
+            padding: 8px 14px;
+            font-size: 0.76rem;
             cursor: pointer;
-            border-bottom: 1px solid #eee;
+            color: #ccc;
+            border-bottom: 1px solid #2a2a2a;
         }
 
         .picker-item:last-child {
@@ -89,7 +90,8 @@
         }
 
         .picker-item:hover {
-            background: #f0faf4;
+            background: #2a2a2a;
+            color: #fff;
         }
 
         .sidebar-btn {
@@ -230,13 +232,35 @@
             opacity: 1;
         }
 
+        /* Editor body: line numbers + textarea side by side */
+        #editor-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            border-top: 1px solid #e8e0b0;
+        }
+
+        #line-numbers {
+            background: #f5efcc;
+            color: #b0a870;
+            font-family: 'Menlo', 'Consolas', monospace;
+            font-size: 0.7rem;
+            line-height: 1.65;
+            padding: 12px 8px 12px 10px;
+            text-align: right;
+            user-select: none;
+            overflow: hidden;
+            white-space: pre;
+            min-width: 32px;
+            flex-shrink: 0;
+            border-right: 1px solid #e8e0b0;
+        }
+
         #code-editor {
             flex: 1;
-            width: 100%;
             background: #fffde7;
             color: #1a1a00;
             border: none;
-            border-top: 1px solid #e8e0b0;
             padding: 12px 14px;
             font-family: 'Menlo', 'Consolas', 'JetBrains Mono', monospace;
             font-size: 0.7rem;
@@ -244,6 +268,7 @@
             resize: none;
             outline: none;
             tab-size: 4;
+            overflow-y: auto;
         }
 
         #compile-error {
@@ -528,7 +553,10 @@
                     <span id="editor-logo">🦐 Shrimp</span>
                     <div id="tab-bar"></div>
                 </div>
-                <textarea id="code-editor" spellcheck="false"></textarea>
+                <div id="editor-body">
+                    <div id="line-numbers">1</div>
+                    <textarea id="code-editor" spellcheck="false"></textarea>
+                </div>
                 <div id="compile-error"></div>
             </div>
 
