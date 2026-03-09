@@ -23,7 +23,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            gap: 24px;
+            gap: 20px;
             padding: 24px;
         }
 
@@ -34,6 +34,7 @@
             color: #a0c4ff;
         }
 
+        /* --- Drop zone --- */
         #drop-zone {
             border: 2px dashed #4a4a8a;
             border-radius: 12px;
@@ -60,27 +61,97 @@
             display: none;
         }
 
-        #canvas-wrap {
+        /* --- Main emulator area --- */
+        #emu-area {
             display: none;
             flex-direction: column;
             align-items: center;
             gap: 12px;
         }
 
-        canvas {
+        #game-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        canvas#screen {
             image-rendering: pixelated;
             border-radius: 8px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            /* 160x144 scaled up 3x */
             width: 480px;
+            /* 160 × 3 */
             height: 432px;
+            /* 144 × 3 */
+        }
+
+        /* --- Debug panel --- */
+        #debug-panel {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .debug-section {
+            background: #16213e;
+            border: 1px solid #2a2a5a;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .debug-section h3 {
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #a0c4ff;
+            margin-bottom: 8px;
+        }
+
+        canvas.debug-canvas {
+            image-rendering: pixelated;
+            display: block;
+            border-radius: 4px;
+        }
+
+        /* tileset: 128×192 shown at 2× = 256×384, but cap height */
+        #tileset-canvas {
+            width: 256px;
+            height: 384px;
+        }
+
+        /* memory map: 256×256 shown at 1.5× = 384×384, but cap */
+        #memmap-canvas {
+            width: 256px;
+            height: 256px;
+        }
+
+        /* --- Bottom bar --- */
+        #bottom-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
 
         #controls-hint {
             font-size: 0.78rem;
             color: #666;
-            text-align: center;
             line-height: 1.7;
+        }
+
+        button#debug-toggle {
+            background: #1e2f5a;
+            border: 1px solid #4a4a8a;
+            border-radius: 6px;
+            color: #a0c4ff;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 5px 12px;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+
+        button#debug-toggle:hover {
+            background: #2a3f7a;
         }
 
         #status {
@@ -102,11 +173,28 @@
         <input type="file" id="rom-input" accept=".gb,.rom" />
     </div>
 
-    <div id="canvas-wrap">
-        <canvas id="screen" width="160" height="144"></canvas>
-        <div id="controls-hint">
-            Arrow keys: D-pad &nbsp;|&nbsp; Z: A &nbsp;|&nbsp; X: B &nbsp;|&nbsp;
-            Enter: Start &nbsp;|&nbsp; Shift: Select
+    <div id="emu-area">
+        <div id="game-row">
+            <canvas id="screen" width="160" height="144"></canvas>
+
+            <div id="debug-panel">
+                <div class="debug-section">
+                    <h3>VRAM Tileset</h3>
+                    <canvas id="tileset-canvas" class="debug-canvas" width="128" height="192"></canvas>
+                </div>
+                <div class="debug-section">
+                    <h3>Memory Map</h3>
+                    <canvas id="memmap-canvas" class="debug-canvas" width="256" height="256"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="bottom-bar">
+            <div id="controls-hint">
+                Arrow keys: D-pad &nbsp;|&nbsp; Z: A &nbsp;|&nbsp; X: B &nbsp;|&nbsp;
+                Enter: Start &nbsp;|&nbsp; Shift: Select
+            </div>
+            <button id="debug-toggle">Show debug</button>
         </div>
     </div>
 

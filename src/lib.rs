@@ -14,8 +14,6 @@ use cpu::Cpu;
 use gpu::Gpu;
 use memory::{Memory, MemoryAccess};
 
-const LOG_CAPACITY: usize = 20;
-
 // Game Boy screen dimensions
 const SCREEN_WIDTH: usize = 160;
 const SCREEN_HEIGHT: usize = 144;
@@ -77,6 +75,20 @@ impl Emulator {
     /// Returns the current frame as an RGBA byte vector (160×144×4 bytes).
     pub fn get_framebuffer(&self) -> Vec<u8> {
         self.pixel_buffer.clone()
+    }
+
+    /// Returns the VRAM tileset as an RGBA byte vector (128×192 px, 384 tiles).
+    pub fn get_tileset(&self) -> Vec<u8> {
+        let mut buf = vec![0u8; TILESET_WIDTH * TILESET_HEIGHT * 4];
+        self.memory.generate_tileset_rgba(&mut buf);
+        buf
+    }
+
+    /// Returns the full 64KB memory map as an RGBA byte vector (256×256 px).
+    pub fn get_memory_map(&self) -> Vec<u8> {
+        let mut buf = vec![0u8; MEMORY_WIDTH * MEMORY_HEIGHT * 4];
+        self.memory.generate_memory_rgba(&mut buf);
+        buf
     }
 
     /// Called by JavaScript on keydown. key_code is the browser KeyboardEvent.code value.
