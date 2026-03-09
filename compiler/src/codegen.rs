@@ -999,18 +999,21 @@ impl Codegen {
         self.push_bc();
 
         // HL = $9800 + D*32 + E
-        self.ld_a_d();  // A = ty
-        self.ld_b_a();  // B = ty  (save for L computation)
+        self.ld_a_d(); // A = ty
+        self.ld_b_a(); // B = ty  (save for L computation)
 
         // H = $98 + (ty >> 3)  — the high byte of the BG map address.
-        self.emit(0xCB); self.emit(0x3F); // SRL A  → ty>>1
-        self.emit(0xCB); self.emit(0x3F); // SRL A  → ty>>2
-        self.emit(0xCB); self.emit(0x3F); // SRL A  → ty>>3
-        self.add_a_n(0x98);               // A = $98 + (ty>>3)
-        self.ld_h_a();                    // H = correct high byte
+        self.emit(0xCB);
+        self.emit(0x3F); // SRL A  → ty>>1
+        self.emit(0xCB);
+        self.emit(0x3F); // SRL A  → ty>>2
+        self.emit(0xCB);
+        self.emit(0x3F); // SRL A  → ty>>3
+        self.add_a_n(0x98); // A = $98 + (ty>>3)
+        self.ld_h_a(); // H = correct high byte
 
         // L = (ty << 5) & 0xFF  — the low byte of ty*32.
-        self.ld_a_b();  // A = ty (restored from B)
+        self.ld_a_b(); // A = ty (restored from B)
         for _ in 0..5 {
             self.emit(0x87); // ADD A, A  ×5  → A = (ty*32) & 0xFF
         }
@@ -1021,7 +1024,8 @@ impl Codegen {
         self.emit(0x85); // ADD A, L → A = tx + L
         self.ld_l_a();
         self.ld_a_h2();
-        self.emit(0xCE); self.emit(0x00); // ADC A, $00
+        self.emit(0xCE);
+        self.emit(0x00); // ADC A, $00
         self.ld_h_a();
 
         // Restore B (tile), store it at (HL)
