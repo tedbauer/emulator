@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Boy Emulator</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            gap: 24px;
+            padding: 24px;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #a0c4ff;
+        }
+
+        #drop-zone {
+            border: 2px dashed #4a4a8a;
+            border-radius: 12px;
+            padding: 32px 48px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            background: #16213e;
+        }
+
+        #drop-zone:hover,
+        #drop-zone.drag-over {
+            border-color: #a0c4ff;
+            background: #1e2f5a;
+        }
+
+        #drop-zone p {
+            font-size: 0.95rem;
+            color: #888;
+            margin-top: 8px;
+        }
+
+        #rom-input {
+            display: none;
+        }
+
+        #canvas-wrap {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            /* 160x144 scaled up 3x */
+            width: 480px;
+            height: 432px;
+        }
+
+        #controls-hint {
+            font-size: 0.78rem;
+            color: #666;
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        #status {
+            font-size: 0.85rem;
+            color: #888;
+            min-height: 1.2em;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Game Boy Emulator</h1>
+
+    <div id="drop-zone">
+        <label for="rom-input" style="cursor:pointer; font-size:1rem;">
+            Drop a ROM here or <strong style="color:#a0c4ff">click to choose</strong>
+        </label>
+        <p>Supports .gb files</p>
+        <input type="file" id="rom-input" accept=".gb,.rom" />
+    </div>
+
+    <div id="canvas-wrap">
+        <canvas id="screen" width="160" height="144"></canvas>
+        <div id="controls-hint">
+            Arrow keys: D-pad &nbsp;|&nbsp; Z: A &nbsp;|&nbsp; X: B &nbsp;|&nbsp;
+            Enter: Start &nbsp;|&nbsp; Shift: Select
+        </div>
+    </div>
+
+    <div id="status">Load a ROM to start.</div>
+
+    <script type="module" src="./index.js"></script>
+</body>
+
+</html>

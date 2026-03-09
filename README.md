@@ -2,9 +2,11 @@
 
 A Game Boy emulator written in Rust.
 
-I started working on this in 2023 as a hobby project, getting far enough to see the Nintendo boot screen, before shelving it. In 2026, I picked it back up again and used Claude Sonnet 4.6 and Gemini 3.1 Pro (High), in the Antigravity harness. They picked up where I left off and finished the CPU, GPU, and APU to the point of running full commercial games with input and sound.
+I started working on this in 2023 as a hobby project, spending a couple of months on it when I had the time. I got far enough to see the Nintendo boot screen before shelving it. In 2026, I picked it back up again and used Claude Sonnet 4.6 and Gemini 3.1 Pro (High), in the Antigravity harness. They picked up where I left off and finished the CPU, GPU, and APU to the point of running full commercial games with input and sound.
 
 ## Building
+
+### Native (SDL2)
 
 Requires Rust and SDL2.
 
@@ -19,7 +21,34 @@ LIBRARY_PATH=/opt/homebrew/lib cargo build
 LIBRARY_PATH=/opt/homebrew/lib cargo build --release
 ```
 
+### Web (WASM)
+
+Requires [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/).
+
+```bash
+# Install wasm-pack (once)
+curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+# Build the WASM package
+wasm-pack build --target web
+```
+
+Then serve the project root with any static file server (the browser requires
+a real server for `import` / WASM — `file://` won't work):
+
+```bash
+# Python 3 (quick)
+python3 -m http.server 8080
+
+# Or npx
+npx serve .
+```
+
+Open `http://localhost:8080` and drop a `.gb` ROM onto the page.
+
 ## Running
+
+### Native
 
 ```bash
 # Debug build
@@ -38,9 +67,9 @@ Place your ROM files in the `roms/` directory.
 | Arrow keys | D-pad |
 | `Z` | A button |
 | `X` | B button |
-| `Return` | Start |
-| `Backspace` | Select |
-| `Escape` | Quit |
+| `Return` / `Enter` | Start |
+| `Backspace` / `Shift` | Select |
+| `Escape` | Quit (native only) |
 
 ## Supported Features
 
@@ -60,10 +89,14 @@ src/
   gpu.rs     — PPU: BG/Window/Sprite rendering, scanline timing, VBlank
   apu.rs     — APU: square wave, wave table, noise channels; stereo mixer; DC filter
   memory.rs  — Memory map, MBC1 bank switching, OAM DMA, joypad register
-  main.rs    — SDL2 window + audio, frame-driven main loop
-  lib.rs     — WASM bindings (WebAssembly frontend)
+  main.rs    — SDL2 window + audio, frame-driven main loop (native)
+  lib.rs     — WASM bindings: tick loop, keyboard input, framebuffer export
+index.html   — Browser frontend (drop-zone ROM loader, canvas display)
+index.js     — JS glue: WASM init, render loop, keyboard events
 ```
 
 ## Notes
 
 - `docs/` contains development notes, debugging walkthrough, and BIOS disassembly reference
+- `bios/bios.rom` is required but gitignored — provide your own DMG BIOS
+- `roms/` is gitignored (ROM files are copyrighted)
