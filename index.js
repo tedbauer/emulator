@@ -6,13 +6,12 @@ const tilesetCanvas = document.getElementById("tileset-canvas");
 const tilesetCtx = tilesetCanvas.getContext("2d");
 const memmapCanvas = document.getElementById("memmap-canvas");
 const memmapCtx = memmapCanvas.getContext("2d");
+const ilogPre = document.getElementById("ilog-pre");
 
 const dropZone = document.getElementById("drop-zone");
 const emuArea = document.getElementById("emu-area");
 const romInput = document.getElementById("rom-input");
 const status = document.getElementById("status");
-const debugPanel = document.getElementById("debug-panel");
-const debugToggle = document.getElementById("debug-toggle");
 
 const SCREEN_W = 160;
 const SCREEN_H = 144;
@@ -23,16 +22,21 @@ const MEMMAP_H = 256;
 
 let emulator = null;
 let animFrame = null;
-let debugVisible = false;
+
+// Which debug sections are currently visible
+const visible = { "tileset-section": false, "memmap-section": false, "ilog-section": false };
 
 // ---------------------------------------------------------------------------
-// Debug panel toggle
+// Per-section toggle buttons
 // ---------------------------------------------------------------------------
 
-debugToggle.addEventListener("click", () => {
-    debugVisible = !debugVisible;
-    debugPanel.style.display = debugVisible ? "flex" : "none";
-    debugToggle.textContent = debugVisible ? "Hide debug" : "Show debug";
+document.querySelectorAll(".dbg-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        const target = btn.dataset.target;
+        visible[target] = !visible[target];
+        document.getElementById(target).style.display = visible[target] ? "block" : "none";
+        btn.classList.toggle("active", visible[target]);
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -48,7 +52,6 @@ async function startEmulator(romBytes) {
     }
 
     emulator = new Emulator(romBytes);
-
     dropZone.style.display = "none";
     emuArea.style.display = "flex";
     status.textContent = "Running.";
@@ -59,17 +62,23 @@ async function startEmulator(romBytes) {
 function loop() {
     emulator.tick();
 
-    // Main screen
+    // Main screen — always rendered
     const pixels = new Uint8ClampedArray(emulator.get_framebuffer());
     ctx.putImageData(new ImageData(pixels, SCREEN_W, SCREEN_H), 0, 0);
 
-    // Debug views — only generated when panel is visible (avoid pointless work)
-    if (debugVisible) {
+    // Debug views — only computed when visible
+    if (visible["tileset-section"]) {
         const tileset = new Uint8ClampedArray(emulator.get_tileset());
         tilesetCtx.putImageData(new ImageData(tileset, TILESET_W, TILESET_H), 0, 0);
+    }
 
+    if (visible["memmap-section"]) {
         const memmap = new Uint8ClampedArray(emulator.get_memory_map());
         memmapCtx.putImageData(new ImageData(memmap, MEMMAP_W, MEMMAP_H), 0, 0);
+    }
+
+    if (visible["ilog-section"]) {
+        ilogPre.textContent = emulator.get_instruction_log();
     }
 
     animFrame = requestAnimationFrame(loop);

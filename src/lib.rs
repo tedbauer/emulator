@@ -13,6 +13,9 @@ use wasm_bindgen::prelude::*;
 use cpu::Cpu;
 use gpu::Gpu;
 use memory::{Memory, MemoryAccess};
+use std::collections::VecDeque;
+
+const LOG_CAPACITY: usize = 64;
 
 // Game Boy screen dimensions
 const SCREEN_WIDTH: usize = 160;
@@ -34,6 +37,8 @@ pub struct Emulator {
     // Joypad state: bit=0 means pressed (active-low)
     joypad_buttons: u8,
     joypad_dpad: u8,
+    // Instruction log: most-recent first, capped at LOG_CAPACITY entries
+    instruction_log: VecDeque<String>,
 }
 
 #[wasm_bindgen]
@@ -50,6 +55,7 @@ impl Emulator {
             pixel_buffer: vec![0; SCREEN_WIDTH * SCREEN_HEIGHT * 4],
             joypad_buttons: 0xFF,
             joypad_dpad: 0xFF,
+            instruction_log: VecDeque::with_capacity(LOG_CAPACITY),
         }
     }
 
@@ -57,7 +63,12 @@ impl Emulator {
     /// Call this from a requestAnimationFrame loop in JavaScript.
     pub fn tick(&mut self) {
         loop {
-            let (time_increment, _) = self.cpu.step(&mut self.memory);
+            let (time_increment, instr) = self.cpu.step(&mut self.memory);
+            // Push instruction to log (most-recent first)
+            if self.instruction_log.len() == LOG_CAPACITY {
+                self.instruction_log.pop_back();
+            }
+            self.instruction_log.push_front(instr);
             self.cpu.handle_interrupts(&mut self.memory);
             if let Some(framebuffer) = self.gpu.step(time_increment, &mut self.memory) {
                 for (i, pixel) in framebuffer.0.iter().enumerate() {
@@ -75,6 +86,15 @@ impl Emulator {
     /// Returns the current frame as an RGBA byte vector (160×144×4 bytes).
     pub fn get_framebuffer(&self) -> Vec<u8> {
         self.pixel_buffer.clone()
+    }
+
+    /// Returns the instruction log as a newline-separated string (most-recent first).
+    pub fn get_instruction_log(&self) -> String {
+        self.instruction_log
+            .iter()
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n")
     }
 
     /// Returns the VRAM tileset as an RGBA byte vector (128×192 px, 384 tiles).

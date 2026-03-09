@@ -45,6 +45,14 @@ npx serve .
 
 Open `http://localhost:8080` and drop a `.gb` ROM onto the page.
 
+The browser frontend includes optional debug views, each independently toggleable
+via buttons below the game screen:
+
+- **Tileset** — live VRAM tile viewer (128×192 px, all 384 tiles)
+- **Memory** — full 64KB memory map (1 pixel per address)
+- **Instructions** — scrolling log of the last 64 executed CPU instructions
+
+
 ## Running
 
 ### Native

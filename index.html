@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game Boy Emulator</title>
+    <title>emulator</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap"
+        rel="stylesheet" />
     <style>
         *,
         *::before,
@@ -15,9 +18,11 @@
         }
 
         body {
-            background: #1a1a2e;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #111;
+            font-family: 'Merriweather', Georgia, serif;
+            font-weight: 300;
+            font-size: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -27,41 +32,31 @@
             padding: 24px;
         }
 
-        h1 {
-            font-size: 1.4rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: #a0c4ff;
-        }
-
         /* --- Drop zone --- */
         #drop-zone {
-            border: 2px dashed #4a4a8a;
-            border-radius: 12px;
-            padding: 32px 48px;
+            border: 1px solid #ccc;
+            padding: 28px 44px;
             text-align: center;
             cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
-            background: #16213e;
+            transition: border-color 0.15s;
         }
 
         #drop-zone:hover,
         #drop-zone.drag-over {
-            border-color: #a0c4ff;
-            background: #1e2f5a;
+            border-color: #555;
         }
 
         #drop-zone p {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: #888;
-            margin-top: 8px;
+            margin-top: 6px;
         }
 
         #rom-input {
             display: none;
         }
 
-        /* --- Main emulator area --- */
+        /* --- Main area --- */
         #emu-area {
             display: none;
             flex-direction: column;
@@ -72,104 +67,125 @@
         #game-row {
             display: flex;
             align-items: flex-start;
-            gap: 20px;
+            gap: 24px;
         }
 
         canvas#screen {
             image-rendering: pixelated;
-            border-radius: 8px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
             width: 480px;
-            /* 160 × 3 */
             height: 432px;
-            /* 144 × 3 */
+            flex-shrink: 0;
+            display: block;
         }
 
-        /* --- Debug panel --- */
-        #debug-panel {
-            display: none;
+        /* --- Debug sidebar --- */
+        #debug-sidebar {
+            display: flex;
             flex-direction: column;
             gap: 12px;
+            min-width: 0;
         }
 
         .debug-section {
-            background: #16213e;
-            border: 1px solid #2a2a5a;
-            border-radius: 8px;
+            border: 1px solid #ddd;
             padding: 10px;
         }
 
         .debug-section h3 {
             font-size: 0.72rem;
-            letter-spacing: 0.08em;
+            font-weight: 400;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            color: #a0c4ff;
+            color: #888;
             margin-bottom: 8px;
         }
 
         canvas.debug-canvas {
             image-rendering: pixelated;
             display: block;
-            border-radius: 4px;
         }
 
-        /* tileset: 128×192 shown at 2× = 256×384, but cap height */
         #tileset-canvas {
             width: 256px;
             height: 384px;
         }
 
-        /* memory map: 256×256 shown at 1.5× = 384×384, but cap */
         #memmap-canvas {
             width: 256px;
             height: 256px;
+        }
+
+        #ilog-section {
+            width: 260px;
+        }
+
+        #ilog-pre {
+            font-family: 'Menlo', 'Consolas', monospace;
+            font-size: 0.68rem;
+            color: #444;
+            line-height: 1.5;
+            max-height: 320px;
+            overflow-y: auto;
+            white-space: pre;
         }
 
         /* --- Bottom bar --- */
         #bottom-bar {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         #controls-hint {
             font-size: 0.78rem;
-            color: #666;
-            line-height: 1.7;
+            color: #888;
+            line-height: 1.8;
         }
 
-        button#debug-toggle {
-            background: #1e2f5a;
-            border: 1px solid #4a4a8a;
-            border-radius: 6px;
-            color: #a0c4ff;
+        #debug-toggles {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dbg-btn {
+            background: none;
+            border: 1px solid #ccc;
+            color: #888;
             cursor: pointer;
-            font-size: 0.8rem;
-            padding: 5px 12px;
-            transition: background 0.15s;
-            white-space: nowrap;
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 300;
+            padding: 3px 10px;
+            transition: border-color 0.15s, color 0.15s;
         }
 
-        button#debug-toggle:hover {
-            background: #2a3f7a;
+        .dbg-btn:hover {
+            border-color: #555;
+            color: #333;
+        }
+
+        .dbg-btn.active {
+            border-color: #111;
+            color: #111;
         }
 
         #status {
-            font-size: 0.85rem;
-            color: #888;
+            font-size: 0.8rem;
+            color: #aaa;
             min-height: 1.2em;
         }
     </style>
 </head>
 
 <body>
-    <h1>Game Boy Emulator</h1>
 
     <div id="drop-zone">
-        <label for="rom-input" style="cursor:pointer; font-size:1rem;">
-            Drop a ROM here or <strong style="color:#a0c4ff">click to choose</strong>
+        <label for="rom-input" style="cursor:pointer;">
+            drop a rom here or <span style="text-decoration:underline">click to choose</span>
         </label>
-        <p>Supports .gb files</p>
+        <p>.gb files</p>
         <input type="file" id="rom-input" accept=".gb,.rom" />
     </div>
 
@@ -177,28 +193,36 @@
         <div id="game-row">
             <canvas id="screen" width="160" height="144"></canvas>
 
-            <div id="debug-panel">
-                <div class="debug-section">
+            <div id="debug-sidebar">
+                <div class="debug-section" id="tileset-section" style="display:none">
                     <h3>VRAM Tileset</h3>
                     <canvas id="tileset-canvas" class="debug-canvas" width="128" height="192"></canvas>
                 </div>
-                <div class="debug-section">
+                <div class="debug-section" id="memmap-section" style="display:none">
                     <h3>Memory Map</h3>
                     <canvas id="memmap-canvas" class="debug-canvas" width="256" height="256"></canvas>
+                </div>
+                <div class="debug-section" id="ilog-section" style="display:none">
+                    <h3>Instructions</h3>
+                    <pre id="ilog-pre"></pre>
                 </div>
             </div>
         </div>
 
         <div id="bottom-bar">
             <div id="controls-hint">
-                Arrow keys: D-pad &nbsp;|&nbsp; Z: A &nbsp;|&nbsp; X: B &nbsp;|&nbsp;
-                Enter: Start &nbsp;|&nbsp; Shift: Select
+                arrow keys: d-pad &nbsp;·&nbsp; z: a &nbsp;·&nbsp; x: b &nbsp;·&nbsp;
+                enter: start &nbsp;·&nbsp; shift: select
             </div>
-            <button id="debug-toggle">Show debug</button>
+            <div id="debug-toggles">
+                <button class="dbg-btn" data-target="tileset-section">tileset</button>
+                <button class="dbg-btn" data-target="memmap-section">memory</button>
+                <button class="dbg-btn" data-target="ilog-section">instructions</button>
+            </div>
         </div>
     </div>
 
-    <div id="status">Load a ROM to start.</div>
+    <div id="status">load a rom to start</div>
 
     <script type="module" src="./index.js"></script>
 </body>
