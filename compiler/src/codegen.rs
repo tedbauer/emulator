@@ -145,7 +145,7 @@ impl Codegen {
         self.emit_u16(addr);
     }
     /// LD (nn), A
-    fn ld_mem_a(&mut self, addr: u16) {
+    pub fn ld_mem_a(&mut self, addr: u16) {
         self.emit(0xEA);
         self.emit_u16(addr);
     }
@@ -668,12 +668,14 @@ impl Codegen {
                 self.jr_nc(&true_lbl.clone());
             }
             CmpKind::Gt => {
-                // A > B  ↔  NOT (A <= B)  ↔  NOT (A < B OR A == B)
-                // Easier: CP B; JR Z, false; JR NC, true (NC means A >= B; already know A!=B → A>B)
-                // But we already called cp_b above... just do both checks
-                // We already emitted CP B. JR for Gt: Z flag = equal (not gt), C flag = lt (not gt).
-                // Gt is true iff NOT Z AND NOT C.
-                self.jr_nc(&true_lbl.clone()); // NC = A >= B (not lt); combined with not-Z = GT
+                // A > B  ↔  NOT Z AND NOT C
+                // CP B sets Z if equal, C if A < B.
+                // If Z (equal) → not greater → fall through to false.
+                // If NC and not Z → A > B → true.
+                let false_lbl = self.fresh_label();
+                self.jr_z(&false_lbl.clone()); // equal → not greater
+                self.jr_nc(&true_lbl.clone()); // NC and not Z → greater
+                self.place_label(&false_lbl);
             }
             CmpKind::LtEq => {
                 // LtEq: A <= B ↔ A < B OR A == B ↔ NOT (A > B) ↔ C set OR Z set
