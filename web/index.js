@@ -168,7 +168,7 @@ on vblank:
 
     if on_ground == 1:
         if pressed(Button.A):
-            vy := -12
+            vy := -8
             on_ground := 0
             jump_lock := 12
 
