@@ -74,9 +74,9 @@ impl Emulator {
         }
     }
 
-    /// Returns a pointer to the pixel buffer for JavaScript to read.
-    pub fn framebuffer_ptr(&self) -> *const u8 {
-        self.pixel_buffer.as_ptr()
+    /// Returns the current frame as an RGBA byte vector (160×144×4 bytes).
+    pub fn get_framebuffer(&self) -> Vec<u8> {
+        self.pixel_buffer.clone()
     }
 
     /// Called by JavaScript on keydown. key_code is the browser KeyboardEvent.code value.

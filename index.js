@@ -1,5 +1,4 @@
 import init, { Emulator } from "./pkg/emulator.js";
-import { memory } from "./pkg/emulator_bg.wasm";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -30,7 +29,6 @@ async function startEmulator(romBytes) {
 
     dropZone.style.display = "none";
     canvasWrap.style.display = "flex";
-    canvas.focus();
     status.textContent = "Running.";
 
     loop();
@@ -39,9 +37,9 @@ async function startEmulator(romBytes) {
 function loop() {
     emulator.tick();
 
-    // Read the 160×144 RGBA framebuffer directly from WASM linear memory.
-    const ptr = emulator.framebuffer_ptr();
-    const pixels = new Uint8ClampedArray(memory.buffer, ptr, SCREEN_W * SCREEN_H * 4);
+    // get_framebuffer() returns a cloned Vec<u8> via wasm-bindgen — avoids
+    // raw WASM memory pointer arithmetic entirely.
+    const pixels = new Uint8ClampedArray(emulator.get_framebuffer());
     ctx.putImageData(new ImageData(pixels, SCREEN_W, SCREEN_H), 0, 0);
 
     animFrame = requestAnimationFrame(loop);
@@ -51,11 +49,11 @@ function loop() {
 // Keyboard input
 // ---------------------------------------------------------------------------
 
-const ARROW_KEYS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"]);
+const PREVENT_SCROLL = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"]);
 
 window.addEventListener("keydown", (e) => {
     if (!emulator) return;
-    if (ARROW_KEYS.has(e.key)) e.preventDefault();
+    if (PREVENT_SCROLL.has(e.key)) e.preventDefault();
     emulator.key_down(e.code);
 });
 
