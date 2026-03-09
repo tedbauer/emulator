@@ -97,13 +97,8 @@ pub fn compile(src: &str) -> Result<Vec<u8>, String> {
 
     // Read the vblank function address before finalize() consumes the labels
     let vblank_addr = cg.label_addr("__vblank_fn").unwrap_or(0);
-    let init_addr = cg.label_addr("__init_fn").unwrap_or(0);
 
     let game_code = cg.finalize()?;
-
-    eprintln!("[debug] code size: {} bytes", game_code.len());
-    eprintln!("[debug] init_addr: 0x{:04X}", init_addr);
-    eprintln!("[debug] vblank_addr: 0x{:04X}", vblank_addr);
 
     let has_vblank = program.on_vblank.is_some();
 
