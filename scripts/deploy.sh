@@ -44,6 +44,27 @@ if [ -f web/bios/bios.rom ]; then
     cp web/bios/bios.rom "$DEPLOY_DIR/bios/"
 fi
 
+# 4. Generate documentation with Pushpin
+echo "  Generating docs..."
+DOCS_DIR="$EMULATOR_DIR/docs-site"
+if command -v pushpin &>/dev/null; then
+    PUSHPIN_BIN=pushpin
+elif [ -f "$EMULATOR_DIR/../pushpin/target/release/pushpin" ]; then
+    PUSHPIN_BIN="$EMULATOR_DIR/../pushpin/target/release/pushpin"
+else
+    echo "  ⚠ pushpin not found, skipping docs generation"
+    PUSHPIN_BIN=""
+fi
+
+if [ -n "$PUSHPIN_BIN" ]; then
+    cd "$DOCS_DIR"
+    rm -rf docs/
+    "$PUSHPIN_BIN" generate
+    mkdir -p "$DEPLOY_DIR/docs"
+    cp -r docs/* "$DEPLOY_DIR/docs/"
+    cd "$EMULATOR_DIR"
+fi
+
 echo ""
 echo "✅ Done! Files copied to:"
 echo "   $DEPLOY_DIR"
