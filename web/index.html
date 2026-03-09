@@ -26,6 +26,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: flex-start;
             min-height: 100vh;
             gap: 16px;
             padding: 24px;
@@ -101,8 +102,8 @@
         #code-editor {
             flex: 1;
             width: 100%;
-            background: #0f1117;
-            color: #e2e8f0;
+            background: #fffde7;
+            color: #1a1a00;
             border: none;
             padding: 12px 14px;
             font-family: 'Menlo', 'Consolas', 'JetBrains Mono', monospace;
@@ -163,11 +164,16 @@
             flex-wrap: nowrap;
         }
 
+        #status {
+            font-size: 0.78rem;
+            color: #aaa;
+            flex: 1;
+        }
+
         #controls-hint {
             font-size: 0.75rem;
             color: #888;
             line-height: 1.8;
-            flex: 1;
         }
 
         .load-rom-btn {
@@ -274,13 +280,6 @@
             white-space: pre;
         }
 
-        /* ── Status ── */
-        #status {
-            font-size: 0.78rem;
-            color: #aaa;
-            min-height: 1.2em;
-        }
-
         /* ── Hidden file input ── */
         #rom-input {
             display: none;
@@ -315,6 +314,7 @@
 
     <!-- Bottom bar — fixed layout, never shifts -->
     <div id="bottom-bar">
+        <div id="status">Load a ROM to start.</div>
         <div id="controls-hint">
             Arrow keys: D-pad &nbsp;·&nbsp; Z: A &nbsp;·&nbsp; X: B &nbsp;·&nbsp;
             Enter: Start &nbsp;·&nbsp; Shift: Select
@@ -343,8 +343,6 @@
             <pre id="ilog-pre"></pre>
         </div>
     </div>
-
-    <div id="status">Load a ROM to start.</div>
 
     <script type="module" src="./index.js"></script>
 </body>
