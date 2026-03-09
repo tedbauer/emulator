@@ -11,9 +11,12 @@ use codegen::Codegen;
 use resolver::Resolver;
 use rom::{encode_tile, RomWriter};
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 const GAME_CODE_BASE: u16 = 0x0200;
 
-/// Compile GBScript source → 32-byte Game Boy ROM binary.
+/// Compile Shrimp source → 32KB Game Boy ROM binary.
 pub fn compile(src: &str) -> Result<Vec<u8>, String> {
     // 1. Lex
     let tokens = lexer::tokenize(src)?;
@@ -84,4 +87,13 @@ pub fn compile(src: &str) -> Result<Vec<u8>, String> {
     let rom = writer.build(&game_code, &tile_data, has_vblank, vblank_addr);
 
     Ok(rom.to_vec())
+}
+
+/// WASM export: compile Shrimp source → Uint8Array ROM, or throw a JS Error.
+#[cfg(feature = "wasm")]
+#[wasm_bindgen]
+pub fn compile_to_rom(src: &str) -> Result<js_sys::Uint8Array, JsValue> {
+    compile(src)
+        .map(|bytes| js_sys::Uint8Array::from(bytes.as_slice()))
+        .map_err(|e| JsValue::from_str(&e))
 }

@@ -15,3 +15,4 @@
 /debugging
 build_log.txt
 /games/*.gb
+/web/compiler_pkg/

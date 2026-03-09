@@ -10,5 +10,11 @@ path = "src/main.rs"
 [lib]
 name = "compiler"
 path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+
+[features]
+wasm = ["wasm-bindgen", "js-sys"]
