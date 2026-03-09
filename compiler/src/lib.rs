@@ -65,7 +65,20 @@ pub fn compile(src: &str) -> Result<Vec<u8>, String> {
     // User-defined functions
     for func in &program.functions {
         cg.place_label(&func.name);
+        // Inject unmangled param aliases so the body can reference params by short name
+        let mut alias_names = Vec::new();
+        for (pname, _) in &func.params {
+            let mangled = format!("{}$${}", func.name, pname);
+            if let Some(info) = cg.vars.get(&mangled).cloned() {
+                cg.vars.insert(pname.clone(), info);
+                alias_names.push(pname.clone());
+            }
+        }
         cg.gen_block(&func.body)?;
+        // Remove aliases to prevent leaking into other functions
+        for alias in &alias_names {
+            cg.vars.remove(alias);
+        }
         cg.ret();
     }
 

@@ -31,6 +31,8 @@ pub struct Codegen {
     pub base: u16,
     pub vars: HashMap<String, VarInfo>,
     pub tiles: HashMap<String, u8>, // tile name → index
+    /// For each user function, the ordered list of parameter names.
+    pub fn_params: HashMap<String, Vec<String>>,
 }
 
 impl Codegen {
@@ -46,6 +48,7 @@ impl Codegen {
                 .iter()
                 .map(|(k, v)| (k.clone(), v.index))
                 .collect(),
+            fn_params: resolver.fn_params.clone(),
         }
     }
 
@@ -516,14 +519,34 @@ impl Codegen {
                         self.jr_z(&end_lbl.clone());
                         self.place_label(&loop_lbl);
                         self.add_a_b();
-                        self.dec_b(); // wait — we need C as counter
-                                      // redo: use D as accumulator
-                                      // Simpler approach: pre-computed, but for now use a helper pattern.
-                                      // Actually let's do it correctly with the E register as counter:
-                                      // Abort and redo this properly below in gen_mul.
-                                      // For now: placeholder that compiles (result may be wrong for large n)
+                        self.dec_b();
                         self.jr_nz(&loop_lbl);
                         self.place_label(&end_lbl);
+                    }
+                    BinOp::Div => {
+                        // Division: only constant power-of-2 divisors supported
+                        if let Expr::Int(n, _) = rhs.as_ref() {
+                            let n = *n;
+                            if n > 0 && (n & (n - 1)) == 0 {
+                                self.gen_expr(lhs)?; // A = dividend
+                                let shifts = (n as u32).trailing_zeros();
+                                for _ in 0..shifts {
+                                    // SRL A = CB 3F
+                                    self.emit(0xCB);
+                                    self.emit(0x3F);
+                                }
+                            } else {
+                                return Err(format!(
+                                    "Line {}: division by non-power-of-2 not yet supported",
+                                    line
+                                ));
+                            }
+                        } else {
+                            return Err(format!(
+                                "Line {}: division requires a constant divisor",
+                                line
+                            ));
+                        }
                     }
                     _ => {
                         // Evaluate lhs → A, push; rhs → A; pop lhs into B
@@ -577,7 +600,7 @@ impl Codegen {
                 self.gen_cmp_result(CmpKind::GtEq);
             }
             BinOp::Div => {
-                return Err(format!("Line {}: division not yet supported", line));
+                unreachable!("Div is handled in gen_expr");
             }
             BinOp::Mod => {
                 return Err(format!("Line {}: modulo not yet supported", line));
@@ -749,13 +772,30 @@ impl Codegen {
             }
             // User-defined function call
             other => {
-                // Evaluate args left-to-right; just call — no arg passing convention defined yet
-                // Phase 1: only support 0-arg user functions
-                if !args.is_empty() {
-                    return Err(format!(
-                        "Line {}: user function args not yet supported in codegen",
-                        line
-                    ));
+                // Look up param names for this function
+                if let Some(param_names) = self.fn_params.get(other).cloned() {
+                    if args.len() != param_names.len() {
+                        return Err(format!(
+                            "Line {}: function '{}' expects {} args, got {}",
+                            line,
+                            other,
+                            param_names.len(),
+                            args.len()
+                        ));
+                    }
+                    // Evaluate each arg and store to the parameter's WRAM address
+                    for (arg, pname) in args.iter().zip(param_names.iter()) {
+                        self.gen_expr(arg)?;
+                        let var = self.vars.get(pname).cloned().ok_or_else(|| {
+                            format!(
+                                "Line {}: internal error: param '{}' not in vars",
+                                line, pname
+                            )
+                        })?;
+                        self.ld_mem_a(var.addr);
+                    }
+                } else if !args.is_empty() {
+                    return Err(format!("Line {}: unknown function '{}'", line, other));
                 }
                 self.call(other);
             }

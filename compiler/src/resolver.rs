@@ -22,6 +22,8 @@ pub struct TileInfo {
 pub struct Resolver {
     pub vars: HashMap<String, VarInfo>,
     pub tiles: HashMap<String, TileInfo>,
+    /// For each user function, the ordered list of parameter names.
+    pub fn_params: HashMap<String, Vec<String>>,
     next_wram: u16,
     next_tile: u8,
 }
@@ -33,6 +35,7 @@ impl Resolver {
         Resolver {
             vars: HashMap::new(),
             tiles: HashMap::new(),
+            fn_params: HashMap::new(),
             next_wram: Self::WRAM_BASE,
             next_tile: 1, // tile 0 reserved as blank for BG
         }
@@ -46,6 +49,67 @@ impl Resolver {
         // Register globals
         for g in &prog.globals {
             self.register_var(g)?;
+        }
+        // Register function parameters as WRAM variables
+        for func in &prog.functions {
+            let mut param_names = Vec::new();
+            for (pname, pty) in &func.params {
+                // Mangle: fn_name$$param_name to avoid conflicts between functions
+                let mangled = format!("{}$${}", func.name, pname);
+                let size: u16 = match pty {
+                    Type::U8 | Type::I8 | Type::Bool => 1,
+                    Type::U16 => 2,
+                };
+                let addr = self.next_wram;
+                self.next_wram += size;
+                self.vars.insert(
+                    mangled.clone(),
+                    VarInfo {
+                        addr,
+                        ty: pty.clone(),
+                    },
+                );
+                param_names.push(mangled);
+            }
+            self.fn_params.insert(func.name.clone(), param_names);
+        }
+        // Register `let` declarations inside all blocks
+        if let Some(init) = &prog.init {
+            self.register_block_vars(init)?;
+        }
+        if let Some(vblank) = &prog.on_vblank {
+            self.register_block_vars(vblank)?;
+        }
+        for func in &prog.functions {
+            self.register_block_vars(&func.body)?;
+        }
+        Ok(())
+    }
+
+    fn register_block_vars(&mut self, block: &Block) -> Result<(), String> {
+        for stmt in block {
+            match stmt {
+                Stmt::Let(decl) => {
+                    if !self.vars.contains_key(&decl.name) {
+                        self.register_var(decl)?;
+                    }
+                }
+                Stmt::If {
+                    then, elifs, else_, ..
+                } => {
+                    self.register_block_vars(then)?;
+                    for (_, elif_block) in elifs {
+                        self.register_block_vars(elif_block)?;
+                    }
+                    if let Some(e) = else_ {
+                        self.register_block_vars(e)?;
+                    }
+                }
+                Stmt::While { body, .. } | Stmt::Loop { body, .. } => {
+                    self.register_block_vars(body)?;
+                }
+                _ => {}
+            }
         }
         Ok(())
     }
