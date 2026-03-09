@@ -18,6 +18,7 @@ const codeEditor = document.getElementById("code-editor");
 const runBtn = document.getElementById("run-btn");
 const newFileBtn = document.getElementById("new-file-btn");
 const demoBtn = document.getElementById("demo-btn");
+const demoPicker = document.getElementById("demo-picker");
 const compileError = document.getElementById("compile-error");
 const tabBar = document.getElementById("tab-bar");
 const termOutput = document.getElementById("terminal-output");
@@ -178,12 +179,26 @@ newFileBtn.addEventListener("click", () => {
     switchTo(createFile(`untitled-${untitledCounter++}.s`, ""));
 });
 
-// Load demo (Pong) — deduplicates
-demoBtn.addEventListener("click", () => {
-    const existing = files.find(f => f.name === "pong.s");
-    if (existing) { switchTo(existing.id); return; }
-    switchTo(createFile("pong.s", PONG_SOURCE));
+// Demo button toggles picker
+demoBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    demoPicker.classList.toggle("hidden");
 });
+
+// Picker items load the demo
+const DEMO_SOURCES = { "pong.s": PONG_SOURCE };
+document.querySelectorAll(".picker-item[data-name]").forEach(item => {
+    item.addEventListener("click", () => {
+        demoPicker.classList.add("hidden");
+        const name = item.dataset.name;
+        const existing = files.find(f => f.name === name);
+        if (existing) { switchTo(existing.id); return; }
+        switchTo(createFile(name, DEMO_SOURCES[name] ?? ""));
+    });
+});
+
+// Close picker when clicking elsewhere
+document.addEventListener("click", () => demoPicker.classList.add("hidden"));
 
 // ── Tab key in editor ─────────────────────────────────────────────────────────
 codeEditor.addEventListener("keydown", e => {

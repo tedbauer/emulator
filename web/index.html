@@ -52,6 +52,41 @@
             gap: 8px;
             width: 130px;
             flex-shrink: 0;
+            position: relative;
+        }
+
+        /* Demo picker dropdown */
+        #demo-picker {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 2px solid #111;
+            border-radius: 10px;
+            box-shadow: 4px 4px 0 #111;
+            z-index: 200;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        #demo-picker.hidden {
+            display: none;
+        }
+
+        .picker-item {
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .picker-item:last-child {
+            border-bottom: none;
+        }
+
+        .picker-item:hover {
+            background: #f0faf4;
         }
 
         .sidebar-btn {
@@ -116,15 +151,39 @@
             background: #fffde7;
         }
 
-        /* Tab bar only — no action buttons */
-        #tab-bar-wrap {
+        /* ── Editor pane header: logo row + tab bar row ── */
+        #editor-header-logo {
             display: flex;
             align-items: center;
+            gap: 8px;
+            padding: 7px 12px 5px;
             background: #111;
-            padding: 6px 8px 0;
-            gap: 2px;
+            color: #c8f0d8;
+            font-size: 0.78rem;
+            font-weight: 700;
             flex-shrink: 0;
-            min-height: 34px;
+            border-bottom: 1px solid #222;
+        }
+
+        #tab-bar-wrap {
+            display: flex;
+            align-items: flex-end;
+            background: #111;
+            padding: 4px 8px 0;
+            flex-shrink: 0;
+            min-height: 30px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        #tab-bar-wrap::-webkit-scrollbar {
+            display: none;
+        }
+
+        #tab-bar {
+            display: flex;
+            flex-direction: row;
+            gap: 2px;
         }
 
         .tab {
@@ -257,7 +316,7 @@
         /* ── Terminal ── */
         #terminal-panel {
             width: 100%;
-            max-width: 958px;
+            max-width: 1038px;
             border: 2px solid #111;
             border-radius: 10px;
             overflow: hidden;
@@ -313,7 +372,7 @@
             align-items: center;
             gap: 20px;
             width: 100%;
-            max-width: 958px;
+            max-width: 1038px;
         }
 
         #status {
@@ -383,7 +442,7 @@
             gap: 12px;
             padding: 0 24px 24px;
             width: 100%;
-            max-width: 958px;
+            max-width: 1038px;
         }
 
         .debug-section {
@@ -449,14 +508,18 @@
             <div id="sidebar">
                 <button class="sidebar-btn" id="run-btn" disabled>▶&nbsp; Run</button>
                 <hr class="sidebar-sep" />
-                <button class="sidebar-btn" id="new-file-btn">＋&nbsp; New</button>
-                <button class="sidebar-btn" id="demo-btn">🏓&nbsp; Load demo</button>
+                <button class="sidebar-btn" id="new-file-btn">＋&nbsp; New .s</button>
+                <button class="sidebar-btn" id="demo-btn">🦐&nbsp; Load demo .s</button>
+                <div id="demo-picker" class="hidden">
+                    <div class="picker-item" data-name="pong.s">🏓&nbsp; Pong</div>
+                </div>
                 <label class="sidebar-btn" for="rom-input">📂&nbsp; Load .gb</label>
                 <input type="file" id="rom-input" accept=".gb,.rom" />
             </div>
 
             <!-- Editor -->
             <div id="editor-pane">
+                <div id="editor-header-logo">🦐 Shrimp</div>
                 <div id="tab-bar-wrap">
                     <div id="tab-bar"></div>
                 </div>
