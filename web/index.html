@@ -26,45 +26,49 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             min-height: 100vh;
-            gap: 20px;
+            gap: 16px;
             padding: 24px;
         }
 
-        /* --- Shrimp editor panel --- */
-        #shrimp-panel {
-            width: 100%;
-            max-width: 860px;
+        /* ── Main row: editor left, GB screen right ── */
+        #main-row {
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        /* ── Shrimp editor pane ── */
+        #editor-pane {
+            display: flex;
+            flex-direction: column;
+            width: 400px;
             border: 2px solid #111;
             border-radius: 12px;
-            background: #fff;
-            box-shadow: 4px 4px 0 #111;
             overflow: hidden;
+            box-shadow: 4px 4px 0 #111;
         }
 
         #shrimp-header {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 16px;
+            padding: 8px 14px;
             background: #111;
             color: #fff;
-        }
-
-        #shrimp-header span {
-            font-size: 0.78rem;
-            font-weight: 400;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            opacity: 0.7;
-            flex: 1;
+            flex-shrink: 0;
         }
 
         #shrimp-header strong {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 700;
             font-style: italic;
+        }
+
+        #shrimp-header span {
+            font-size: 0.75rem;
+            opacity: 0.5;
+            flex: 1;
         }
 
         #compile-btn {
@@ -74,9 +78,10 @@
             color: #111;
             cursor: pointer;
             font-family: inherit;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 700;
-            padding: 5px 14px;
+            padding: 4px 12px;
+            white-space: nowrap;
             transition: opacity 0.1s, transform 0.1s;
         }
 
@@ -89,96 +94,137 @@
         }
 
         #compile-btn:disabled {
-            opacity: 0.4;
+            opacity: 0.35;
             cursor: not-allowed;
         }
 
         #code-editor {
+            flex: 1;
             width: 100%;
-            height: 220px;
             background: #0f1117;
             color: #e2e8f0;
             border: none;
-            border-top: 1px solid #333;
-            padding: 12px 16px;
+            padding: 12px 14px;
             font-family: 'Menlo', 'Consolas', 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            line-height: 1.6;
-            resize: vertical;
+            font-size: 0.7rem;
+            line-height: 1.65;
+            resize: none;
             outline: none;
             tab-size: 4;
         }
 
         #compile-error {
             display: none;
-            padding: 8px 16px;
+            padding: 7px 14px;
             background: #fff0f0;
             color: #c00;
             font-family: 'Menlo', 'Consolas', monospace;
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             border-top: 1px solid #fcc;
             white-space: pre-wrap;
+            flex-shrink: 0;
         }
 
         #compile-error.visible {
             display: block;
         }
 
-        /* --- Drop zone --- */
-        #drop-zone {
+        /* ── GB screen pane ── */
+        #screen-pane {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #screen-wrap {
             border: 2px solid #111;
             border-radius: 12px;
-            padding: 28px 44px;
-            text-align: center;
-            cursor: pointer;
-            background: #fff;
+            overflow: hidden;
             box-shadow: 4px 4px 0 #111;
-            transition: box-shadow 0.1s;
-        }
-
-        #drop-zone:hover,
-        #drop-zone.drag-over {
-            box-shadow: 2px 2px 0 #111;
-        }
-
-        #drop-zone p {
-            font-size: 0.85rem;
-            color: #888;
-            margin-top: 6px;
-        }
-
-        #rom-input {
-            display: none;
-        }
-
-        /* --- Main area --- */
-        #emu-area {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-        }
-
-        #game-row {
+            background: #111;
+            flex: 1;
             display: flex;
-            align-items: flex-start;
-            gap: 24px;
+            align-items: stretch;
         }
 
         canvas#screen {
             image-rendering: pixelated;
             width: 480px;
-            height: 432px;
-            flex-shrink: 0;
             display: block;
         }
 
-        /* --- Debug sidebar (right column) --- */
-        #debug-sidebar {
+        /* ── Bottom bar (always the same height — never shifts) ── */
+        #bottom-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+            flex-wrap: nowrap;
+        }
+
+        #controls-hint {
+            font-size: 0.75rem;
+            color: #888;
+            line-height: 1.8;
+            flex: 1;
+        }
+
+        .load-rom-btn {
+            background: #fff;
+            border: 2px solid #111;
+            border-radius: 8px;
+            color: #111;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 300;
+            padding: 4px 12px;
+            box-shadow: 3px 3px 0 #111;
+            transition: box-shadow 0.1s;
+            white-space: nowrap;
+        }
+
+        .load-rom-btn:hover {
+            box-shadow: 1px 1px 0 #111;
+        }
+
+        #debug-toggles {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dbg-btn {
+            background: #fff;
+            border: 2px solid #111;
+            border-radius: 8px;
+            color: #111;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 300;
+            padding: 4px 12px;
+            box-shadow: 3px 3px 0 #111;
+            transition: box-shadow 0.1s;
+        }
+
+        .dbg-btn:hover {
+            box-shadow: 1px 1px 0 #111;
+        }
+
+        .dbg-btn.active {
+            background: #111;
+            color: #fff;
+            box-shadow: none;
+        }
+
+        /* ── Debug panels (left to right, below main row) ── */
+        #debug-panels {
             display: flex;
             flex-direction: row;
             gap: 12px;
-            align-items: flex-start;
+            width: 100%;
+            max-width: 900px;
         }
 
         .debug-section {
@@ -187,10 +233,11 @@
             padding: 10px;
             background: #fff;
             box-shadow: 4px 4px 0 #111;
+            flex-shrink: 0;
         }
 
         .debug-section h3 {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 400;
             letter-spacing: 0.06em;
             text-transform: uppercase;
@@ -214,121 +261,86 @@
         }
 
         #ilog-section {
-            width: 260px;
+            min-width: 260px;
         }
 
         #ilog-pre {
             font-family: 'Menlo', 'Consolas', monospace;
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             color: #444;
             line-height: 1.5;
-            max-height: 320px;
+            max-height: 384px;
             overflow-y: auto;
             white-space: pre;
         }
 
-        /* --- Bottom bar --- */
-        #bottom-bar {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        #controls-hint {
-            font-size: 0.78rem;
-            color: #888;
-            line-height: 1.8;
-        }
-
-        #debug-toggles {
-            display: flex;
-            gap: 8px;
-        }
-
-        .dbg-btn {
-            background: #fff;
-            border: 2px solid #111;
-            border-radius: 8px;
-            color: #111;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: 300;
-            padding: 4px 12px;
-            box-shadow: 3px 3px 0 #111;
-            transition: box-shadow 0.1s;
-        }
-
-        .dbg-btn:hover {
-            box-shadow: 1px 1px 0 #111;
-        }
-
-        .dbg-btn.active {
-            background: #111;
-            color: #fff;
-            box-shadow: none;
-        }
-
+        /* ── Status ── */
         #status {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: #aaa;
             min-height: 1.2em;
+        }
+
+        /* ── Hidden file input ── */
+        #rom-input {
+            display: none;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- Shrimp editor panel -->
-    <div id="shrimp-panel">
-        <div id="shrimp-header">
-            <strong>🦐 Shrimp</strong>
-            <span>pong.s</span>
-            <button id="compile-btn" disabled>▶ Compile &amp; Run</button>
+    <!-- Main row: editor + GB screen -->
+    <div id="main-row">
+
+        <!-- Shrimp editor -->
+        <div id="editor-pane">
+            <div id="shrimp-header">
+                <strong>🦐 Shrimp</strong>
+                <span>pong.s</span>
+                <button id="compile-btn" disabled>▶ Compile &amp; Run</button>
+            </div>
+            <textarea id="code-editor" spellcheck="false"></textarea>
+            <div id="compile-error"></div>
         </div>
-        <textarea id="code-editor" spellcheck="false"></textarea>
-        <div id="compile-error"></div>
+
+        <!-- GB screen -->
+        <div id="screen-pane">
+            <div id="screen-wrap">
+                <canvas id="screen" width="160" height="144"></canvas>
+            </div>
+        </div>
+
     </div>
 
-    <div id="drop-zone">
-        <label for="rom-input" style="cursor:pointer;">
-            Drop a ROM here or <span style="text-decoration:underline">click to choose</span>
-        </label>
-        <p>.gb files</p>
+    <!-- Bottom bar — fixed layout, never shifts -->
+    <div id="bottom-bar">
+        <div id="controls-hint">
+            Arrow keys: D-pad &nbsp;·&nbsp; Z: A &nbsp;·&nbsp; X: B &nbsp;·&nbsp;
+            Enter: Start &nbsp;·&nbsp; Shift: Select
+        </div>
+        <label class="load-rom-btn" for="rom-input">Load ROM</label>
         <input type="file" id="rom-input" accept=".gb,.rom" />
+        <div id="debug-toggles">
+            <button class="dbg-btn" data-target="tileset-section">Tileset</button>
+            <button class="dbg-btn" data-target="memmap-section">Memory</button>
+            <button class="dbg-btn" data-target="ilog-section">Instructions</button>
+        </div>
     </div>
 
-    <div id="emu-area">
-        <div id="game-row">
-            <canvas id="screen" width="160" height="144"></canvas>
-            <div id="debug-sidebar">
-                <div class="debug-section" id="tileset-section" style="display:none">
-                    <h3>VRAM Tileset</h3>
-                    <canvas id="tileset-canvas" class="debug-canvas" width="128" height="192"></canvas>
-                </div>
-                <div class="debug-section" id="memmap-section" style="display:none">
-                    <h3>Memory Map</h3>
-                    <canvas id="memmap-canvas" class="debug-canvas" width="256" height="256"></canvas>
-                </div>
-                <div class="debug-section" id="ilog-section" style="display:none">
-                    <h3>Instructions</h3>
-                    <pre id="ilog-pre"></pre>
-                </div>
-            </div>
+    <!-- Debug panels — appear left to right below main row -->
+    <div id="debug-panels">
+        <div class="debug-section" id="tileset-section" style="display:none">
+            <h3>VRAM Tileset</h3>
+            <canvas id="tileset-canvas" class="debug-canvas" width="128" height="192"></canvas>
         </div>
-
-        <div id="bottom-bar">
-            <div id="controls-hint">
-                Arrow keys: D-pad &nbsp;·&nbsp; Z: A &nbsp;·&nbsp; X: B &nbsp;·&nbsp;
-                Enter: Start &nbsp;·&nbsp; Shift: Select
-            </div>
-            <div id="debug-toggles">
-                <button class="dbg-btn" data-target="tileset-section">Tileset</button>
-                <button class="dbg-btn" data-target="memmap-section">Memory</button>
-                <button class="dbg-btn" data-target="ilog-section">Instructions</button>
-            </div>
+        <div class="debug-section" id="memmap-section" style="display:none">
+            <h3>Memory Map</h3>
+            <canvas id="memmap-canvas" class="debug-canvas" width="256" height="256"></canvas>
+        </div>
+        <div class="debug-section" id="ilog-section" style="display:none">
+            <h3>Instructions</h3>
+            <pre id="ilog-pre"></pre>
         </div>
     </div>
 

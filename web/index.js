@@ -10,8 +10,6 @@ const memmapCanvas = document.getElementById("memmap-canvas");
 const memmapCtx = memmapCanvas.getContext("2d");
 const ilogPre = document.getElementById("ilog-pre");
 
-const dropZone = document.getElementById("drop-zone");
-const emuArea = document.getElementById("emu-area");
 const romInput = document.getElementById("rom-input");
 const status = document.getElementById("status");
 
@@ -218,8 +216,6 @@ async function startEmulator(romBytes) {
     initAudio();
     if (audioCtx.state === "suspended") await audioCtx.resume();
     emulator = new Emulator(romBytes);
-    dropZone.style.display = "none";
-    emuArea.style.display = "flex";
     lastFrameTime = performance.now() - FRAME_MS;
     loop();
 }
@@ -271,13 +267,6 @@ window.addEventListener("keyup", (e) => {
 });
 
 // ── File drop / picker ────────────────────────────────────────────────────────
-dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("drag-over"); });
-dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
-dropZone.addEventListener("drop", (e) => {
-    e.preventDefault(); dropZone.classList.remove("drag-over");
-    const file = e.dataTransfer.files[0];
-    if (file) loadFile(file);
-});
 
 romInput.addEventListener("change", () => {
     const file = romInput.files[0];
