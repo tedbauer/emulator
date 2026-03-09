@@ -163,6 +163,25 @@ impl RomWriter {
             setup.extend_from_slice(&[0x2A, 0x12, 0x13, 0x0B, 0x78, 0xB1, 0x20, 0xF9]);
         }
 
+        // Clear BG tilemap ($9800-$9BFF): 1024 bytes of $00
+        // So all BG cells reference tile 0 (blank) instead of leftover BIOS logo tiles
+        // LD HL,$9800; LD BC,$0400; XOR A; bg_loop: LD (HL+),A; DEC BC; LD A,B; OR C; JR NZ,bg_loop; XOR A
+        setup.extend_from_slice(&[
+            0x21, 0x00, 0x98,       // LD HL, $9800
+            0x01, 0x00, 0x04,       // LD BC, $0400  (1024)
+            0xAF,                   // XOR A
+            0x22,                   // LD (HL+), A
+            0x0B,                   // DEC BC
+            0x78,                   // LD A, B
+            0xB1,                   // OR C
+            0x20, 0xFA,             // JR NZ, -6 (back to LD (HL+))
+            0xAF,                   // XOR A  (restore A=0 for next section)
+        ]);
+
+        // Clear tile 0 in VRAM ($8000-$800F): 16 bytes of $00 — ensures tile 0 is blank
+        // LD HL,$8000; LD B,16; XOR A; t0_loop: LD (HL+),A; DEC B; JR NZ,t0_loop
+        setup.extend_from_slice(&[0x21, 0x00, 0x80, 0x06, 0x10, 0xAF, 0x22, 0x05, 0x20, 0xFD]);
+
         // Clear OAM ($FE00-$FE9F): 160 bytes of $00
         // LD HL,$FE00; LD B,160; XOR A; oam_loop: LD (HL+),A; DEC B; JR NZ,oam_loop
         setup.extend_from_slice(&[0x21, 0x00, 0xFE, 0x06, 0xA0, 0xAF, 0x22, 0x05, 0x20, 0xFD]);
