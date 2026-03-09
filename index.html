@@ -18,11 +18,11 @@
         }
 
         body {
-            background: #fff;
+            background: #c8f0d8;
             color: #111;
             font-family: 'Merriweather', Georgia, serif;
             font-weight: 300;
-            font-size: 15px;
+            font-size: 18px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -34,16 +34,19 @@
 
         /* --- Drop zone --- */
         #drop-zone {
-            border: 1px solid #ccc;
+            border: 2px solid #111;
+            border-radius: 12px;
             padding: 28px 44px;
             text-align: center;
             cursor: pointer;
-            transition: border-color 0.15s;
+            background: #fff;
+            box-shadow: 4px 4px 0 #111;
+            transition: box-shadow 0.1s;
         }
 
         #drop-zone:hover,
         #drop-zone.drag-over {
-            border-color: #555;
+            box-shadow: 2px 2px 0 #111;
         }
 
         #drop-zone p {
@@ -87,8 +90,11 @@
         }
 
         .debug-section {
-            border: 1px solid #ddd;
+            border: 2px solid #111;
+            border-radius: 10px;
             padding: 10px;
+            background: #fff;
+            box-shadow: 4px 4px 0 #111;
         }
 
         .debug-section h3 {
@@ -150,25 +156,27 @@
         }
 
         .dbg-btn {
-            background: none;
-            border: 1px solid #ccc;
-            color: #888;
+            background: #fff;
+            border: 2px solid #111;
+            border-radius: 8px;
+            color: #111;
             cursor: pointer;
             font-family: inherit;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-weight: 300;
-            padding: 3px 10px;
-            transition: border-color 0.15s, color 0.15s;
+            padding: 4px 12px;
+            box-shadow: 3px 3px 0 #111;
+            transition: box-shadow 0.1s;
         }
 
         .dbg-btn:hover {
-            border-color: #555;
-            color: #333;
+            box-shadow: 1px 1px 0 #111;
         }
 
         .dbg-btn.active {
-            border-color: #111;
-            color: #111;
+            background: #111;
+            color: #fff;
+            box-shadow: none;
         }
 
         #status {
