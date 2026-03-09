@@ -149,19 +149,21 @@ impl RomWriter {
         setup.extend_from_slice(&[0x3E, 0x00, 0xE0, 0x40]);
 
         if !tile_data.is_empty() {
-            // First, clear VRAM tile area $8000-$87FF (2048 bytes / 128 tiles)
-            // to erase any BIOS-leftover tile data (Nintendo logo, etc.)
-            // LD HL,$8000; LD BC,$0800; .loop: XOR A; LD (HL+),A; DEC BC; LD A,B; OR C; JR NZ,.loop
+            // First, clear VRAM tile area $8000-$87FF (2048 bytes = 8 pages × 256)
+            // Uses nested loops: outer B=8 pages, inner C=0 (wraps to 256 iterations)
+            // This erases BIOS-leftover tile data (Nintendo logo, etc.)
             setup.extend_from_slice(&[
                 0x21, 0x00, 0x80,       // LD HL, $8000
-                0x01, 0x00, 0x08,       // LD BC, $0800  (2048)
-                0xAF,                   // XOR A          -- loop start
-                0x22,                   // LD (HL+), A
-                0x0B,                   // DEC BC
-                0x78,                   // LD A, B
-                0xB1,                   // OR C
-                0x28, 0x02,             // JR Z, +2       (skip back-jump if done)
-                0x18, 0xF7,             // JR -9          (back to XOR A)
+                0x06, 0x08,             // LD B, 8          (8 pages)
+                // outer:
+                0x0E, 0x00,             // LD C, 0          (256 iterations)
+                0xAF,                   // XOR A
+                // inner:
+                0x22,                   // LD (HL+), A       (write 0, HL++)
+                0x0D,                   // DEC C
+                0x20, 0xFC,             // JR NZ, -4         (back to LD (HL+))
+                0x05,                   // DEC B
+                0x20, 0xF6,             // JR NZ, -10        (back to LD C, 0)
             ]);
 
             // Copy tile data to VRAM $8000
@@ -174,22 +176,23 @@ impl RomWriter {
             setup.extend_from_slice(&len.to_le_bytes());  // LD BC, len
             // Inline memcpy loop:
             //   copy_loop: LD A,(HL+); LD (DE),A; INC DE; DEC BC; LD A,B; OR C; JR NZ,copy_loop
-            setup.extend_from_slice(&[0x2A, 0x12, 0x13, 0x0B, 0x78, 0xB1, 0x20, 0xF9]);
+            setup.extend_from_slice(&[0x2A, 0x12, 0x13, 0x0B, 0x78, 0xB1, 0x20, 0xF8]);
         }
 
-        // Clear BG tilemap ($9800-$9BFF): 1024 bytes of $00
+        // Clear BG tilemap ($9800-$9BFF): 1024 bytes = 4 pages × 256
         // All BG cells reference tile 0 (blank)
-        // NOTE: XOR A is INSIDE the loop because LD A,B corrupts A during BC==0 check
         setup.extend_from_slice(&[
             0x21, 0x00, 0x98,       // LD HL, $9800
-            0x01, 0x00, 0x04,       // LD BC, $0400  (1024)
-            0xAF,                   // XOR A          -- loop start
+            0x06, 0x04,             // LD B, 4          (4 pages)
+            // outer:
+            0x0E, 0x00,             // LD C, 0          (256 iterations)
+            0xAF,                   // XOR A
+            // inner:
             0x22,                   // LD (HL+), A
-            0x0B,                   // DEC BC
-            0x78,                   // LD A, B
-            0xB1,                   // OR C
-            0x28, 0x02,             // JR Z, +2       (skip back-jump if done)
-            0x18, 0xF7,             // JR -9          (back to XOR A)
+            0x0D,                   // DEC C
+            0x20, 0xFC,             // JR NZ, -4         (back to LD (HL+))
+            0x05,                   // DEC B
+            0x20, 0xF6,             // JR NZ, -10        (back to LD C, 0)
         ]);
 
         // Clear OAM ($FE00-$FE9F): 160 bytes of $00
