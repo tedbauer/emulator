@@ -43,14 +43,14 @@ pub enum TokenKind {
     Star,
     Slash,
     Percent,
-    Eq,        // =
-    Walrus,    // :=
-    EqEq,      // ==
-    NotEq,     // !=
-    Lt,        // <
-    LtEq,      // <=
-    Gt,        // >
-    GtEq,      // >=
+    Eq,     // =
+    Walrus, // :=
+    EqEq,   // ==
+    NotEq,  // !=
+    Lt,     // <
+    LtEq,   // <=
+    Gt,     // >
+    GtEq,   // >=
     LParen,
     RParen,
     LBracket,

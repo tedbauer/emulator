@@ -1,7 +1,7 @@
 //! Resolver: builds the symbol table and assigns WRAM addresses + tile indices.
 
-use std::collections::HashMap;
 use crate::ast::*;
+use std::collections::HashMap;
 
 /// A resolved global variable: its WRAM address and type.
 #[derive(Debug, Clone)]
@@ -52,7 +52,10 @@ impl Resolver {
 
     fn register_tile(&mut self, tile: &TileDef) -> Result<(), String> {
         if self.tiles.contains_key(&tile.name) {
-            return Err(format!("Line {}: duplicate tile '{}'", tile.line, tile.name));
+            return Err(format!(
+                "Line {}: duplicate tile '{}'",
+                tile.line, tile.name
+            ));
         }
         if self.next_tile == 255 {
             return Err("Too many tiles (max 255)".into());
@@ -79,7 +82,10 @@ impl Resolver {
         }
         self.tiles.insert(
             tile.name.clone(),
-            TileInfo { index: self.next_tile, pixels },
+            TileInfo {
+                index: self.next_tile,
+                pixels,
+            },
         );
         self.next_tile += 1;
         Ok(())
@@ -87,7 +93,10 @@ impl Resolver {
 
     fn register_var(&mut self, decl: &LetDecl) -> Result<(), String> {
         if self.vars.contains_key(&decl.name) {
-            return Err(format!("Line {}: duplicate variable '{}'", decl.line, decl.name));
+            return Err(format!(
+                "Line {}: duplicate variable '{}'",
+                decl.line, decl.name
+            ));
         }
         // Infer type from literal if not annotated
         let ty = if let Some(t) = &decl.ty {
@@ -109,7 +118,11 @@ impl Resolver {
 fn infer_type(expr: &Expr) -> Result<Type, String> {
     match expr {
         Expr::Int(n, _) => {
-            if *n < 0 { Ok(Type::I8) } else { Ok(Type::U8) }
+            if *n < 0 {
+                Ok(Type::I8)
+            } else {
+                Ok(Type::U8)
+            }
         }
         Expr::Bool(_, _) => Ok(Type::Bool),
         _ => Ok(Type::U8), // default

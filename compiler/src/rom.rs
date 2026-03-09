@@ -14,12 +14,9 @@ const ROM_SIZE: usize = 32768;
 
 /// The 48-byte Nintendo logo that must appear at $0104–$0133.
 const NINTENDO_LOGO: [u8; 48] = [
-    0xCE,0xED,0x66,0x66,0xCC,0x0D,0x00,0x0B,
-    0x03,0x73,0x00,0x83,0x00,0x0C,0x00,0x0D,
-    0x00,0x08,0x11,0x1F,0x88,0x89,0x00,0x0E,
-    0xDC,0xCC,0x6E,0xE6,0xDD,0xDD,0xD9,0x99,
-    0xBB,0xBB,0x67,0x63,0x6E,0x0E,0xEC,0xCC,
-    0xDD,0xDC,0x99,0x9F,0xBB,0xB9,0x33,0x3E,
+    0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B, 0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D,
+    0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E, 0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99,
+    0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC, 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E,
 ];
 
 pub struct RomWriter {
@@ -28,7 +25,9 @@ pub struct RomWriter {
 
 impl RomWriter {
     pub fn new() -> Self {
-        RomWriter { rom: [0u8; ROM_SIZE] }
+        RomWriter {
+            rom: [0u8; ROM_SIZE],
+        }
     }
 
     /// Write a single byte at an absolute ROM address.
@@ -38,8 +37,8 @@ impl RomWriter {
     }
 
     fn w16(&mut self, addr: usize, val: u16) {
-        self.w(addr,     (val & 0xFF) as u8);
-        self.w(addr + 1, (val >> 8)   as u8);
+        self.w(addr, (val & 0xFF) as u8);
+        self.w(addr + 1, (val >> 8) as u8);
     }
 
     fn write_slice(&mut self, addr: usize, data: &[u8]) {
@@ -61,24 +60,26 @@ impl RomWriter {
         has_vblank: bool,
         vblank_addr: u16,
     ) -> &[u8] {
-        const VBLANK_ISR:    usize = 0x0040;
-        const ENTRY_POINT:   usize = 0x0100;
-        const LOGO:          usize = 0x0104;
-        const TITLE:         usize = 0x0134;
-        const CART_TYPE:     usize = 0x0147;
+        const VBLANK_ISR: usize = 0x0040;
+        const ENTRY_POINT: usize = 0x0100;
+        const LOGO: usize = 0x0104;
+        const TITLE: usize = 0x0134;
+        const CART_TYPE: usize = 0x0147;
         const ROM_SIZE_BYTE: usize = 0x0148;
         const RAM_SIZE_BYTE: usize = 0x0149;
-        const DEST_CODE:     usize = 0x014A;
-        const OLD_LIC:       usize = 0x014B;
-        const HDR_CKSUM:     usize = 0x014D;
-        const SETUP_START:   usize = 0x0150;
+        const DEST_CODE: usize = 0x014A;
+        const OLD_LIC: usize = 0x014B;
+        const HDR_CKSUM: usize = 0x014D;
+        const SETUP_START: usize = 0x0150;
         const GAME_CODE_START: usize = 0x0200;
 
         // ── Interrupt vectors ──────────────────────────────────────────────
         // $0000-$003F: all RETI (RST handlers; we don't use them)
         for i in (0..0x40).step_by(8) {
-            self.w(i,     0xD9); // RETI
-            for j in 1..8 { self.w(i + j, 0x00); }
+            self.w(i, 0xD9); // RETI
+            for j in 1..8 {
+                self.w(i + j, 0x00);
+            }
         }
 
         // $0040: VBlank ISR
@@ -86,18 +87,18 @@ impl RomWriter {
             // PUSH AF; PUSH BC; PUSH DE; PUSH HL; CALL user_vblank; POP HL; POP DE; POP BC; POP AF; RETI
             let vblank_fn_addr = vblank_addr;
             let code: &[u8] = &[
-                0xF5,       // PUSH AF
-                0xC5,       // PUSH BC
-                0xD5,       // PUSH DE
-                0xE5,       // PUSH HL
-                0xCD,       // CALL nn
+                0xF5, // PUSH AF
+                0xC5, // PUSH BC
+                0xD5, // PUSH DE
+                0xE5, // PUSH HL
+                0xCD, // CALL nn
                 (vblank_fn_addr & 0xFF) as u8,
-                (vblank_fn_addr >> 8)   as u8,
-                0xE1,       // POP HL
-                0xD1,       // POP DE
-                0xC1,       // POP BC
-                0xF1,       // POP AF
-                0xD9,       // RETI
+                (vblank_fn_addr >> 8) as u8,
+                0xE1, // POP HL
+                0xD1, // POP DE
+                0xC1, // POP BC
+                0xF1, // POP AF
+                0xD9, // RETI
             ];
             self.write_slice(VBLANK_ISR, code);
         } else {
@@ -106,7 +107,7 @@ impl RomWriter {
 
         // ── Entry point ($0100) ───────────────────────────────────────────
         // NOP; JP $0150
-        self.w(ENTRY_POINT,     0x00); // NOP
+        self.w(ENTRY_POINT, 0x00); // NOP
         self.w(ENTRY_POINT + 1, 0xC3); // JP nn
         self.w16(ENTRY_POINT + 2, SETUP_START as u16);
 
@@ -118,11 +119,11 @@ impl RomWriter {
         self.write_slice(TITLE, &title[..11]);
 
         // ── Cartridge type / size / dest ─────────────────────────────────
-        self.w(CART_TYPE,     0x00); // ROM only
+        self.w(CART_TYPE, 0x00); // ROM only
         self.w(ROM_SIZE_BYTE, 0x00); // 32KB
         self.w(RAM_SIZE_BYTE, 0x00); // no RAM
-        self.w(DEST_CODE,     0x01); // non-Japanese
-        self.w(OLD_LIC,       0x33); // use new licensee
+        self.w(DEST_CODE, 0x01); // non-Japanese
+        self.w(OLD_LIC, 0x33); // use new licensee
 
         // ── Header checksum ($014D) ────────────────────────────────────────
         let cksum = self.rom[0x0134..=0x014C]
@@ -145,7 +146,7 @@ impl RomWriter {
         // Wait for VBlank before touching VRAM: poll LY >= 144
         //   vblank_wait: LD A,(FF44); CP 144; JR C, vblank_wait
         setup.extend_from_slice(&[0xF0, 0x44, 0xFE, 0x90, 0x38, 0xFB]); // LDH A,(44); CP 144; JR C,-5
-        // LCD off: LD A,0; LD (FF40), A
+                                                                        // LCD off: LD A,0; LD (FF40), A
         setup.extend_from_slice(&[0x3E, 0x00, 0xE0, 0x40]);
 
         if !tile_data.is_empty() {
@@ -153,17 +154,17 @@ impl RomWriter {
             // Uses nested loops: outer B=8 pages, inner C=0 (wraps to 256 iterations)
             // This erases BIOS-leftover tile data (Nintendo logo, etc.)
             setup.extend_from_slice(&[
-                0x21, 0x00, 0x80,       // LD HL, $8000
-                0x06, 0x08,             // LD B, 8          (8 pages)
+                0x21, 0x00, 0x80, // LD HL, $8000
+                0x06, 0x08, // LD B, 8          (8 pages)
                 // outer:
-                0x0E, 0x00,             // LD C, 0          (256 iterations)
-                0xAF,                   // XOR A
+                0x0E, 0x00, // LD C, 0          (256 iterations)
+                0xAF, // XOR A
                 // inner:
-                0x22,                   // LD (HL+), A       (write 0, HL++)
-                0x0D,                   // DEC C
-                0x20, 0xFC,             // JR NZ, -4         (back to LD (HL+))
-                0x05,                   // DEC B
-                0x20, 0xF6,             // JR NZ, -10        (back to LD C, 0)
+                0x22, // LD (HL+), A       (write 0, HL++)
+                0x0D, // DEC C
+                0x20, 0xFC, // JR NZ, -4         (back to LD (HL+))
+                0x05, // DEC B
+                0x20, 0xF6, // JR NZ, -10        (back to LD C, 0)
             ]);
 
             // Copy tile data to VRAM $8000
@@ -173,26 +174,26 @@ impl RomWriter {
             setup.extend_from_slice(&[0x11, 0x00, 0x80]); // LD DE, $8000
             let len = tile_data.len() as u16;
             setup.extend_from_slice(&[0x01]);
-            setup.extend_from_slice(&len.to_le_bytes());  // LD BC, len
-            // Inline memcpy loop:
-            //   copy_loop: LD A,(HL+); LD (DE),A; INC DE; DEC BC; LD A,B; OR C; JR NZ,copy_loop
+            setup.extend_from_slice(&len.to_le_bytes()); // LD BC, len
+                                                         // Inline memcpy loop:
+                                                         //   copy_loop: LD A,(HL+); LD (DE),A; INC DE; DEC BC; LD A,B; OR C; JR NZ,copy_loop
             setup.extend_from_slice(&[0x2A, 0x12, 0x13, 0x0B, 0x78, 0xB1, 0x20, 0xF8]);
         }
 
         // Clear BG tilemap ($9800-$9BFF): 1024 bytes = 4 pages × 256
         // All BG cells reference tile 0 (blank)
         setup.extend_from_slice(&[
-            0x21, 0x00, 0x98,       // LD HL, $9800
-            0x06, 0x04,             // LD B, 4          (4 pages)
+            0x21, 0x00, 0x98, // LD HL, $9800
+            0x06, 0x04, // LD B, 4          (4 pages)
             // outer:
-            0x0E, 0x00,             // LD C, 0          (256 iterations)
-            0xAF,                   // XOR A
+            0x0E, 0x00, // LD C, 0          (256 iterations)
+            0xAF, // XOR A
             // inner:
-            0x22,                   // LD (HL+), A
-            0x0D,                   // DEC C
-            0x20, 0xFC,             // JR NZ, -4         (back to LD (HL+))
-            0x05,                   // DEC B
-            0x20, 0xF6,             // JR NZ, -10        (back to LD C, 0)
+            0x22, // LD (HL+), A
+            0x0D, // DEC C
+            0x20, 0xFC, // JR NZ, -4         (back to LD (HL+))
+            0x05, // DEC B
+            0x20, 0xF6, // JR NZ, -10        (back to LD C, 0)
         ]);
 
         // Clear OAM ($FE00-$FE9F): 160 bytes of $00
@@ -201,8 +202,8 @@ impl RomWriter {
 
         // Set palettes: BGP=$E4, OBP0=$E4, OBP1=$E4
         setup.extend_from_slice(&[0x3E, 0xE4, 0xE0, 0x47]); // LD A,$E4; LDH (47),A  BGP
-        setup.extend_from_slice(&[0xE0, 0x48]);              // LDH (48),A  OBP0
-        setup.extend_from_slice(&[0xE0, 0x49]);              // LDH (49),A  OBP1
+        setup.extend_from_slice(&[0xE0, 0x48]); // LDH (48),A  OBP0
+        setup.extend_from_slice(&[0xE0, 0x49]); // LDH (49),A  OBP1
 
         // LCD on: LD A,$93; LDH (40),A   (LCD on, BG on, Sprites on, tile data at $8000)
         // $93 = bit7 (LCD on) | bit4 (BG tile $8000) | bit1 (OBJ/sprites on) | bit0 (BG on)
@@ -236,8 +237,6 @@ impl RomWriter {
     }
 }
 
-
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Tile encoder: pixel grid → 2bpp Game Boy format
 // ─────────────────────────────────────────────────────────────────────────────
@@ -251,7 +250,7 @@ pub fn encode_tile(pixels: &[Vec<u8>]) -> Vec<u8> {
         let mut plane1 = 0u8;
         for (i, &px) in row.iter().enumerate() {
             let bit = 7 - i;
-            plane0 |= ((px & 1) as u8)       << bit;
+            plane0 |= ((px & 1) as u8) << bit;
             plane1 |= (((px >> 1) & 1) as u8) << bit;
         }
         out.push(plane0);

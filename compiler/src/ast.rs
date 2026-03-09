@@ -49,10 +49,27 @@ pub type Block = Vec<Stmt>;
 #[derive(Debug, Clone)]
 pub enum Stmt {
     Let(LetDecl),
-    Assign { name: String, val: Expr, line: usize },
-    If { cond: Expr, then: Block, elifs: Vec<(Expr, Block)>, else_: Option<Block>, line: usize },
-    While { cond: Expr, body: Block, line: usize },
-    Loop { body: Block, line: usize },
+    Assign {
+        name: String,
+        val: Expr,
+        line: usize,
+    },
+    If {
+        cond: Expr,
+        then: Block,
+        elifs: Vec<(Expr, Block)>,
+        else_: Option<Block>,
+        line: usize,
+    },
+    While {
+        cond: Expr,
+        body: Block,
+        line: usize,
+    },
+    Loop {
+        body: Block,
+        line: usize,
+    },
     Return(Option<Expr>, usize),
     Expr(Expr),
     Pass,
@@ -66,27 +83,54 @@ pub enum Expr {
     Ident(String, usize),
     /// member access: Button.LEFT → Member("Button", "LEFT")
     Member(String, String, usize),
-    BinOp { op: BinOp, lhs: Box<Expr>, rhs: Box<Expr>, line: usize },
-    UnaryOp { op: UnaryOp, expr: Box<Expr>, line: usize },
-    Call { func: String, args: Vec<Expr>, line: usize },
+    BinOp {
+        op: BinOp,
+        lhs: Box<Expr>,
+        rhs: Box<Expr>,
+        line: usize,
+    },
+    UnaryOp {
+        op: UnaryOp,
+        expr: Box<Expr>,
+        line: usize,
+    },
+    Call {
+        func: String,
+        args: Vec<Expr>,
+        line: usize,
+    },
 }
 
 impl Expr {
     pub fn line(&self) -> usize {
         match self {
-            Expr::Int(_, l) | Expr::Bool(_, l) | Expr::Str(_, l)
-            | Expr::Ident(_, l) | Expr::Member(_, _, l) => *l,
-            Expr::BinOp { line, .. } | Expr::UnaryOp { line, .. }
-            | Expr::Call { line, .. } => *line,
+            Expr::Int(_, l)
+            | Expr::Bool(_, l)
+            | Expr::Str(_, l)
+            | Expr::Ident(_, l)
+            | Expr::Member(_, _, l) => *l,
+            Expr::BinOp { line, .. } | Expr::UnaryOp { line, .. } | Expr::Call { line, .. } => {
+                *line
+            }
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BinOp {
-    Add, Sub, Mul, Div, Mod,
-    Eq, NotEq, Lt, LtEq, Gt, GtEq,
-    And, Or,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Mod,
+    Eq,
+    NotEq,
+    Lt,
+    LtEq,
+    Gt,
+    GtEq,
+    And,
+    Or,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -97,5 +141,8 @@ pub enum UnaryOp {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
-    U8, I8, U16, Bool,
+    U8,
+    I8,
+    U16,
+    Bool,
 }

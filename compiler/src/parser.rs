@@ -86,7 +86,7 @@ impl Parser {
                 }
                 TokenKind::On => {
                     self.bump(); // consume 'on'
-                    // Expect 'vblank'
+                                 // Expect 'vblank'
                     if let TokenKind::Ident(name) = self.peek().clone() {
                         if name == "vblank" {
                             self.bump();
@@ -151,7 +151,11 @@ impl Parser {
             }
         }
         self.skip_newlines();
-        Ok(Import { module, names, line })
+        Ok(Import {
+            module,
+            names,
+            line,
+        })
     }
 
     // -----------------------------------------------------------------------
@@ -197,9 +201,18 @@ impl Parser {
                     self.bump();
                     loop {
                         match self.peek().clone() {
-                            TokenKind::Ident(s) => { row.push_str(&s); self.bump(); }
-                            TokenKind::Int(n2)  => { row.push_str(&n2.to_string()); self.bump(); }
-                            TokenKind::Dot      => { row.push('.'); self.bump(); }
+                            TokenKind::Ident(s) => {
+                                row.push_str(&s);
+                                self.bump();
+                            }
+                            TokenKind::Int(n2) => {
+                                row.push_str(&n2.to_string());
+                                self.bump();
+                            }
+                            TokenKind::Dot => {
+                                row.push('.');
+                                self.bump();
+                            }
                             _ => break,
                         }
                     }
@@ -215,9 +228,18 @@ impl Parser {
                     // accumulate rest
                     loop {
                         match self.peek().clone() {
-                            TokenKind::Dot => { self.bump(); row.push('.'); }
-                            TokenKind::Int(n) => { row.push_str(&n.to_string()); self.bump(); }
-                            TokenKind::Ident(s) => { row.push_str(&s); self.bump(); }
+                            TokenKind::Dot => {
+                                self.bump();
+                                row.push('.');
+                            }
+                            TokenKind::Int(n) => {
+                                row.push_str(&n.to_string());
+                                self.bump();
+                            }
+                            TokenKind::Ident(s) => {
+                                row.push_str(&s);
+                                self.bump();
+                            }
                             _ => break,
                         }
                     }
@@ -227,7 +249,11 @@ impl Parser {
                     rows.push(row);
                 }
                 other => {
-                    return Err(format!("Line {}: unexpected in tile body: {:?}", self.peek_line(), other));
+                    return Err(format!(
+                        "Line {}: unexpected in tile body: {:?}",
+                        self.peek_line(),
+                        other
+                    ));
                 }
             }
         }
@@ -235,11 +261,22 @@ impl Parser {
         self.skip_newlines();
 
         if rows.len() != 8 {
-            return Err(format!("Line {}: tile '{}' must have exactly 8 rows, got {}", line, name, rows.len()));
+            return Err(format!(
+                "Line {}: tile '{}' must have exactly 8 rows, got {}",
+                line,
+                name,
+                rows.len()
+            ));
         }
         for (i, row) in rows.iter().enumerate() {
             if row.len() != 8 {
-                return Err(format!("Line {}: tile '{}' row {} must be 8 chars wide, got {}", line, name, i, row.len()));
+                return Err(format!(
+                    "Line {}: tile '{}' row {} must be 8 chars wide, got {}",
+                    line,
+                    name,
+                    i,
+                    row.len()
+                ));
             }
         }
         Ok(TileDef { name, rows, line })
@@ -269,16 +306,33 @@ impl Parser {
         self.expect(&TokenKind::Eq)?;
         let init = self.parse_expr(0)?;
         self.skip_newlines();
-        Ok(LetDecl { name, ty, init, line })
+        Ok(LetDecl {
+            name,
+            ty,
+            init,
+            line,
+        })
     }
 
     fn parse_type(&mut self) -> Result<Type, String> {
         let line = self.peek_line();
         match self.peek().clone() {
-            TokenKind::TypeU8 => { self.bump(); Ok(Type::U8) }
-            TokenKind::TypeI8 => { self.bump(); Ok(Type::I8) }
-            TokenKind::TypeU16 => { self.bump(); Ok(Type::U16) }
-            TokenKind::TypeBool => { self.bump(); Ok(Type::Bool) }
+            TokenKind::TypeU8 => {
+                self.bump();
+                Ok(Type::U8)
+            }
+            TokenKind::TypeI8 => {
+                self.bump();
+                Ok(Type::I8)
+            }
+            TokenKind::TypeU16 => {
+                self.bump();
+                Ok(Type::U16)
+            }
+            TokenKind::TypeBool => {
+                self.bump();
+                Ok(Type::Bool)
+            }
             other => Err(format!("Line {}: expected type, got {:?}", line, other)),
         }
     }
@@ -303,12 +357,17 @@ impl Parser {
                 self.bump();
                 n
             } else {
-                return Err(format!("Line {}: expected parameter name", self.peek_line()));
+                return Err(format!(
+                    "Line {}: expected parameter name",
+                    self.peek_line()
+                ));
             };
             self.expect(&TokenKind::Colon)?;
             let ty = self.parse_type()?;
             params.push((pname, ty));
-            if self.peek() == &TokenKind::Comma { self.bump(); }
+            if self.peek() == &TokenKind::Comma {
+                self.bump();
+            }
         }
         self.expect(&TokenKind::RParen)?;
 
@@ -318,7 +377,13 @@ impl Parser {
         self.expect(&TokenKind::Colon)?;
         self.skip_newlines();
         let body = self.parse_block()?;
-        Ok(FnDef { name, params, ret, body, line })
+        Ok(FnDef {
+            name,
+            params,
+            ret,
+            body,
+            line,
+        })
     }
 
     // -----------------------------------------------------------------------
@@ -388,7 +453,10 @@ impl Parser {
                     Ok(Stmt::Expr(e))
                 }
             }
-            other => Err(format!("Line {}: unexpected statement token {:?}", line, other)),
+            other => Err(format!(
+                "Line {}: unexpected statement token {:?}",
+                line, other
+            )),
         }
     }
 
@@ -424,7 +492,13 @@ impl Parser {
                 _ => break,
             }
         }
-        Ok(Stmt::If { cond, then, elifs, else_, line })
+        Ok(Stmt::If {
+            cond,
+            then,
+            elifs,
+            else_,
+            line,
+        })
     }
 
     fn parse_while(&mut self) -> Result<Stmt, String> {
@@ -447,9 +521,12 @@ impl Parser {
             let (prec, right_assoc) = match self.peek() {
                 TokenKind::Or => (1, false),
                 TokenKind::And => (2, false),
-                TokenKind::EqEq | TokenKind::NotEq
-                | TokenKind::Lt | TokenKind::LtEq
-                | TokenKind::Gt | TokenKind::GtEq => (3, false),
+                TokenKind::EqEq
+                | TokenKind::NotEq
+                | TokenKind::Lt
+                | TokenKind::LtEq
+                | TokenKind::Gt
+                | TokenKind::GtEq => (3, false),
                 TokenKind::Plus | TokenKind::Minus => (4, false),
                 TokenKind::Star | TokenKind::Slash | TokenKind::Percent => (5, false),
                 _ => break,
@@ -476,7 +553,12 @@ impl Parser {
             };
             let next_prec = if right_assoc { prec } else { prec + 1 };
             let rhs = self.parse_expr(next_prec)?;
-            lhs = Expr::BinOp { op, lhs: Box::new(lhs), rhs: Box::new(rhs), line };
+            lhs = Expr::BinOp {
+                op,
+                lhs: Box::new(lhs),
+                rhs: Box::new(rhs),
+                line,
+            };
         }
         Ok(lhs)
     }
@@ -487,12 +569,20 @@ impl Parser {
             TokenKind::Minus => {
                 self.bump();
                 let e = self.parse_unary()?;
-                Ok(Expr::UnaryOp { op: UnaryOp::Neg, expr: Box::new(e), line })
+                Ok(Expr::UnaryOp {
+                    op: UnaryOp::Neg,
+                    expr: Box::new(e),
+                    line,
+                })
             }
             TokenKind::Not => {
                 self.bump();
                 let e = self.parse_unary()?;
-                Ok(Expr::UnaryOp { op: UnaryOp::Not, expr: Box::new(e), line })
+                Ok(Expr::UnaryOp {
+                    op: UnaryOp::Not,
+                    expr: Box::new(e),
+                    line,
+                })
             }
             _ => self.parse_primary(),
         }
@@ -501,10 +591,22 @@ impl Parser {
     fn parse_primary(&mut self) -> Result<Expr, String> {
         let line = self.peek_line();
         match self.peek().clone() {
-            TokenKind::Int(n) => { self.bump(); Ok(Expr::Int(n, line)) }
-            TokenKind::True => { self.bump(); Ok(Expr::Bool(true, line)) }
-            TokenKind::False => { self.bump(); Ok(Expr::Bool(false, line)) }
-            TokenKind::StringLit(s) => { self.bump(); Ok(Expr::Str(s, line)) }
+            TokenKind::Int(n) => {
+                self.bump();
+                Ok(Expr::Int(n, line))
+            }
+            TokenKind::True => {
+                self.bump();
+                Ok(Expr::Bool(true, line))
+            }
+            TokenKind::False => {
+                self.bump();
+                Ok(Expr::Bool(false, line))
+            }
+            TokenKind::StringLit(s) => {
+                self.bump();
+                Ok(Expr::Str(s, line))
+            }
             TokenKind::LParen => {
                 self.bump();
                 let e = self.parse_expr(0)?;
@@ -536,11 +638,18 @@ impl Parser {
                         }
                     }
                     self.expect(&TokenKind::RParen)?;
-                    return Ok(Expr::Call { func: name, args, line });
+                    return Ok(Expr::Call {
+                        func: name,
+                        args,
+                        line,
+                    });
                 }
                 Ok(Expr::Ident(name, line))
             }
-            other => Err(format!("Line {}: unexpected token in expression: {:?}", line, other)),
+            other => Err(format!(
+                "Line {}: unexpected token in expression: {:?}",
+                line, other
+            )),
         }
     }
 }
