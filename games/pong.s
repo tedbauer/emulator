@@ -46,7 +46,7 @@ on vblank:
     by := by + vy
 
     # Left/right wall bounce
-    if bx <= 8:
+    if bx <= 1:
         vx := 1
     if bx >= 152:
         vx := -1
@@ -71,10 +71,10 @@ on vblank:
 
     # Move paddle left/right
     if pressed(Button.LEFT):
-        if px > 8:
+        if px >= 2:
             px := px - 2
     if pressed(Button.RIGHT):
-        if px < 128:
+        if px <= 136:
             px := px + 2
 
     # Update sprites

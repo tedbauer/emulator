@@ -26,7 +26,8 @@ pub fn compile(src: &str) -> Result<Vec<u8>, String> {
     resolver.resolve(&program)?;
 
     // 4. Encode tile pixel data → 2bpp bytes
-    let mut tile_data: Vec<u8> = Vec::new();
+    // Tile 0 = blank (16 zero bytes) for clean BG; user tiles start at index 1
+    let mut tile_data: Vec<u8> = vec![0u8; 16];
     // Tiles are stored in resolver order (by index)
     let mut ordered_tiles: Vec<(&String, &resolver::TileInfo)> = resolver.tiles.iter().collect();
     ordered_tiles.sort_by_key(|(_, v)| v.index);

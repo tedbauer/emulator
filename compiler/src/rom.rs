@@ -149,8 +149,22 @@ impl RomWriter {
         setup.extend_from_slice(&[0x3E, 0x00, 0xE0, 0x40]);
 
         if !tile_data.is_empty() {
+            // First, clear VRAM tile area $8000-$87FF (2048 bytes / 128 tiles)
+            // to erase any BIOS-leftover tile data (Nintendo logo, etc.)
+            // LD HL,$8000; LD BC,$0800; .loop: XOR A; LD (HL+),A; DEC BC; LD A,B; OR C; JR NZ,.loop
+            setup.extend_from_slice(&[
+                0x21, 0x00, 0x80,       // LD HL, $8000
+                0x01, 0x00, 0x08,       // LD BC, $0800  (2048)
+                0xAF,                   // XOR A          -- loop start
+                0x22,                   // LD (HL+), A
+                0x0B,                   // DEC BC
+                0x78,                   // LD A, B
+                0xB1,                   // OR C
+                0x28, 0x02,             // JR Z, +2       (skip back-jump if done)
+                0x18, 0xF7,             // JR -9          (back to XOR A)
+            ]);
+
             // Copy tile data to VRAM $8000
-            // LD HL, tile_data_rom_addr; LD DE, $8000; LD BC, len; CALL __memcpy
             let tile_rom_addr = ROM_SIZE as u16 - tile_data.len() as u16;
             setup.extend_from_slice(&[0x21]);
             setup.extend_from_slice(&tile_rom_addr.to_le_bytes());
@@ -164,23 +178,19 @@ impl RomWriter {
         }
 
         // Clear BG tilemap ($9800-$9BFF): 1024 bytes of $00
-        // So all BG cells reference tile 0 (blank) instead of leftover BIOS logo tiles
-        // LD HL,$9800; LD BC,$0400; XOR A; bg_loop: LD (HL+),A; DEC BC; LD A,B; OR C; JR NZ,bg_loop; XOR A
+        // All BG cells reference tile 0 (blank)
+        // NOTE: XOR A is INSIDE the loop because LD A,B corrupts A during BC==0 check
         setup.extend_from_slice(&[
             0x21, 0x00, 0x98,       // LD HL, $9800
             0x01, 0x00, 0x04,       // LD BC, $0400  (1024)
-            0xAF,                   // XOR A
+            0xAF,                   // XOR A          -- loop start
             0x22,                   // LD (HL+), A
             0x0B,                   // DEC BC
             0x78,                   // LD A, B
             0xB1,                   // OR C
-            0x20, 0xFA,             // JR NZ, -6 (back to LD (HL+))
-            0xAF,                   // XOR A  (restore A=0 for next section)
+            0x28, 0x02,             // JR Z, +2       (skip back-jump if done)
+            0x18, 0xF7,             // JR -9          (back to XOR A)
         ]);
-
-        // Clear tile 0 in VRAM ($8000-$800F): 16 bytes of $00 — ensures tile 0 is blank
-        // LD HL,$8000; LD B,16; XOR A; t0_loop: LD (HL+),A; DEC B; JR NZ,t0_loop
-        setup.extend_from_slice(&[0x21, 0x00, 0x80, 0x06, 0x10, 0xAF, 0x22, 0x05, 0x20, 0xFD]);
 
         // Clear OAM ($FE00-$FE9F): 160 bytes of $00
         // LD HL,$FE00; LD B,160; XOR A; oam_loop: LD (HL+),A; DEC B; JR NZ,oam_loop

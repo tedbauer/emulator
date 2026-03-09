@@ -34,7 +34,7 @@ impl Resolver {
             vars: HashMap::new(),
             tiles: HashMap::new(),
             next_wram: Self::WRAM_BASE,
-            next_tile: 0,
+            next_tile: 1, // tile 0 reserved as blank for BG
         }
     }
 
