@@ -1,7 +1,6 @@
 #![allow(dead_code)] // some methods are WASM-only APIs
 use std::fmt;
 
-
 pub trait MemoryAccess {
     fn read_byte(&self, addr: u16) -> u8;
     fn read_word(&self, addr: u16) -> u16;
@@ -19,8 +18,8 @@ pub struct Memory {
     the_rest: [u8; 49152],
     bios_enabled: bool,
     // MBC1 bank switching
-    mbc_type: u8,      // cartridge type from 0x0147 (0=ROM only, 1=MBC1)
-    rom_bank: usize,   // current ROM bank for 0x4000-0x7FFF (MBC1)
+    mbc_type: u8,    // cartridge type from 0x0147 (0=ROM only, 1=MBC1)
+    rom_bank: usize, // current ROM bank for 0x4000-0x7FFF (MBC1)
     // Joypad state: 0=pressed, 1=released (active low)
     pub joypad_buttons: u8,
     pub joypad_dpad: u8,
@@ -63,7 +62,11 @@ impl Memory {
     /// Initialize with ROM data provided at runtime (used by WASM frontend).
     pub fn initialize_with_rom(rom_data: Vec<u8>) -> Self {
         let bios: [u8; 256] = include_bytes!("../bios/bios.rom").clone();
-        let mbc_type = if rom_data.len() > 0x148 { rom_data[0x147] } else { 0 };
+        let mbc_type = if rom_data.len() > 0x148 {
+            rom_data[0x147]
+        } else {
+            0
+        };
         Self {
             bios,
             mbc_type,
@@ -99,16 +102,28 @@ impl MemoryAccess for Memory {
             self.bios[addr]
         } else if addr < 0x4000 {
             // ROM bank 0 always at 0x0000-0x3FFF
-            if addr < self.rom.len() { self.rom[addr] } else { 0xFF }
+            if addr < self.rom.len() {
+                self.rom[addr]
+            } else {
+                0xFF
+            }
         } else if addr < 0x8000 {
             // 0x4000-0x7FFF: switchable ROM bank (MBC1) or bank 1 (ROM only)
             let bank = if self.mbc_type >= 1 { self.rom_bank } else { 1 };
             let offset = (bank * 0x4000) + (addr - 0x4000);
-            if offset < self.rom.len() { self.rom[offset] } else { 0xFF }
+            if offset < self.rom.len() {
+                self.rom[offset]
+            } else {
+                0xFF
+            }
         } else if addr < 0x10000 {
             // 0x8000+: the_rest (VRAM, WRAM, OAM, IO, HRAM)
             let rest_idx = addr - 0x8000;
-            if rest_idx < self.the_rest.len() { self.the_rest[rest_idx] } else { 0xFF }
+            if rest_idx < self.the_rest.len() {
+                self.the_rest[rest_idx]
+            } else {
+                0xFF
+            }
         } else {
             0xFF
         }
@@ -130,7 +145,9 @@ impl MemoryAccess for Memory {
             return;
         }
         // MBC1: RAM enable (0x0000-0x1FFF) — ignore
-        if self.mbc_type >= 1 && addr < 0x2000 { return; }
+        if self.mbc_type >= 1 && addr < 0x2000 {
+            return;
+        }
         let addr = addr as usize;
         if addr < self.bios.len() && self.bios_enabled {
             // writes to BIOS region ignored
@@ -157,7 +174,6 @@ impl MemoryAccess for Memory {
                 self.the_rest[rest_idx] = value;
             }
         }
-
     }
 
     fn write_word(&mut self, addr: u16, value: u16) {
@@ -237,6 +253,8 @@ impl MemoryAccess for Memory {
             }
         }
     }
-    fn set_joypad(&mut self, buttons: u8, dpad: u8) { self.joypad_buttons = buttons; self.joypad_dpad = dpad; }
+    fn set_joypad(&mut self, buttons: u8, dpad: u8) {
+        self.joypad_buttons = buttons;
+        self.joypad_dpad = dpad;
+    }
 }
-

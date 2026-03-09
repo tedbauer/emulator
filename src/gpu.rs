@@ -23,10 +23,30 @@ pub struct Framebuffer(pub Vec<Rgba>);
 
 // Game Boy monochrome palette: color IDs 0-3 → RGBA
 const PALETTE: [Rgba; 4] = [
-    Rgba { r: 255, g: 255, b: 255, a: 255 }, // 0 = white
-    Rgba { r: 170, g: 170, b: 170, a: 255 }, // 1 = light gray
-    Rgba { r:  85, g:  85, b:  85, a: 255 }, // 2 = dark gray
-    Rgba { r:   0, g:   0, b:   0, a: 255 }, // 3 = black
+    Rgba {
+        r: 255,
+        g: 255,
+        b: 255,
+        a: 255,
+    }, // 0 = white
+    Rgba {
+        r: 170,
+        g: 170,
+        b: 170,
+        a: 255,
+    }, // 1 = light gray
+    Rgba {
+        r: 85,
+        g: 85,
+        b: 85,
+        a: 255,
+    }, // 2 = dark gray
+    Rgba {
+        r: 0,
+        g: 0,
+        b: 0,
+        a: 255,
+    }, // 3 = black
 ];
 
 fn gen_framebuffer() -> Framebuffer {
@@ -92,7 +112,8 @@ fn render_scan(gpu: &mut Gpu, memory: &mut Box<dyn MemoryAccess>) {
             let tile_px = bg_x % 8;
             let tile_py = bg_y % 8;
 
-            let tile_idx = memory.read_byte(bg_map_base + (tile_row as u16) * 32 + (tile_col as u16));
+            let tile_idx =
+                memory.read_byte(bg_map_base + (tile_row as u16) * 32 + (tile_col as u16));
             let addr = tile_data_addr(tile_idx, lcdc);
             let color_id = tile_pixel(memory, addr, tile_px, tile_py);
             bg_opaque[pixel_x as usize] = color_id != 0;
@@ -117,12 +138,15 @@ fn render_scan(gpu: &mut Gpu, memory: &mut Box<dyn MemoryAccess>) {
 
         for pixel_x in 0u8..160 {
             let screen_x = pixel_x as i16;
-            if screen_x < win_x_screen { continue; }
+            if screen_x < win_x_screen {
+                continue;
+            }
             let win_px_abs = (screen_x - win_x_screen) as u16;
             let tile_col = (win_px_abs / 8) as u8;
             let tile_px = (win_px_abs % 8) as u8;
 
-            let tile_idx = memory.read_byte(win_map_base + (tile_row as u16) * 32 + (tile_col as u16));
+            let tile_idx =
+                memory.read_byte(win_map_base + (tile_row as u16) * 32 + (tile_col as u16));
             let addr = tile_data_addr(tile_idx, lcdc);
             let color_id = tile_pixel(memory, addr, tile_px, tile_py);
             bg_opaque[pixel_x as usize] = color_id != 0;
@@ -149,7 +173,9 @@ fn render_scan(gpu: &mut Gpu, memory: &mut Box<dyn MemoryAccess>) {
             let ly = line as i16;
             if ly >= sy && ly < sy + sprite_height {
                 visible.push((sprite as u8, sy, sx, tile_idx, attr));
-                if visible.len() == 10 { break; } // max 10 sprites per line
+                if visible.len() == 10 {
+                    break;
+                } // max 10 sprites per line
             }
         }
         // Sort by X coordinate (lower X draws last = highest priority)
@@ -162,11 +188,17 @@ fn render_scan(gpu: &mut Gpu, memory: &mut Box<dyn MemoryAccess>) {
             let palette = if attr & 0x10 != 0 { obp1 } else { obp0 };
 
             // For 8x16 sprites, mask the lowest bit of tile index
-            let tile = if sprite_height == 16 { tile_idx & 0xFE } else { *tile_idx };
+            let tile = if sprite_height == 16 {
+                tile_idx & 0xFE
+            } else {
+                *tile_idx
+            };
             let sprite_addr = 0x8000u16 + (tile as u16) * 16;
 
             let mut row_in_sprite = (line as i16 - sy) as u16;
-            if flip_y { row_in_sprite = (sprite_height as u16 - 1) - row_in_sprite; }
+            if flip_y {
+                row_in_sprite = (sprite_height as u16 - 1) - row_in_sprite;
+            }
 
             // For 8x16, row >= 8 means lower tile
             let tile_addr = if row_in_sprite >= 8 {
@@ -178,13 +210,19 @@ fn render_scan(gpu: &mut Gpu, memory: &mut Box<dyn MemoryAccess>) {
 
             for px in 0u8..8 {
                 let screen_x = sx + px as i16;
-                if screen_x < 0 || screen_x >= 160 { continue; }
+                if screen_x < 0 || screen_x >= 160 {
+                    continue;
+                }
                 let tile_px = if flip_x { 7 - px } else { px };
                 let color_id = tile_pixel(memory, tile_addr, tile_px, tile_row);
-                if color_id == 0 { continue; } // transparent
+                if color_id == 0 {
+                    continue;
+                } // transparent
 
                 // Sprite behind BG: only draw if BG is transparent (color 0)
-                if behind_bg && bg_opaque[screen_x as usize] { continue; }
+                if behind_bg && bg_opaque[screen_x as usize] {
+                    continue;
+                }
 
                 let idx = line_start + screen_x as usize;
                 gpu.framebuffer.0[idx] = decode_palette(palette, color_id);

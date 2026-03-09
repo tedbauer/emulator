@@ -16,7 +16,6 @@ use gpu::Gpu;
 use memory::{Memory, MemoryAccess};
 use std::collections::VecDeque;
 
-
 // ADD: A constant for our log capacity
 const LOG_CAPACITY: usize = 20;
 

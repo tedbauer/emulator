@@ -52,32 +52,40 @@ fn main() {
         // Poll SDL events once per frame (not once per CPU step)
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                Event::Quit { .. }
+                | Event::KeyDown {
+                    keycode: Some(Keycode::Escape),
+                    ..
+                } => {
                     break 'running;
                 }
-                Event::KeyDown { keycode: Some(key), .. } => {
+                Event::KeyDown {
+                    keycode: Some(key), ..
+                } => {
                     match key {
-                        Keycode::Right     => joypad_dpad  &= !0x01,
-                        Keycode::Left      => joypad_dpad  &= !0x02,
-                        Keycode::Up        => joypad_dpad  &= !0x04,
-                        Keycode::Down      => joypad_dpad  &= !0x08,
-                        Keycode::Z         => joypad_buttons &= !0x01, // A
-                        Keycode::X         => joypad_buttons &= !0x02, // B
-                        Keycode::Return    => joypad_buttons &= !0x08, // Start
+                        Keycode::Right => joypad_dpad &= !0x01,
+                        Keycode::Left => joypad_dpad &= !0x02,
+                        Keycode::Up => joypad_dpad &= !0x04,
+                        Keycode::Down => joypad_dpad &= !0x08,
+                        Keycode::Z => joypad_buttons &= !0x01, // A
+                        Keycode::X => joypad_buttons &= !0x02, // B
+                        Keycode::Return => joypad_buttons &= !0x08, // Start
                         Keycode::Backspace => joypad_buttons &= !0x04, // Select
                         _ => {}
                     }
                     memory.set_joypad(joypad_buttons, joypad_dpad);
                 }
-                Event::KeyUp { keycode: Some(key), .. } => {
+                Event::KeyUp {
+                    keycode: Some(key), ..
+                } => {
                     match key {
-                        Keycode::Right     => joypad_dpad  |= 0x01,
-                        Keycode::Left      => joypad_dpad  |= 0x02,
-                        Keycode::Up        => joypad_dpad  |= 0x04,
-                        Keycode::Down      => joypad_dpad  |= 0x08,
-                        Keycode::Z         => joypad_buttons |= 0x01,
-                        Keycode::X         => joypad_buttons |= 0x02,
-                        Keycode::Return    => joypad_buttons |= 0x08,
+                        Keycode::Right => joypad_dpad |= 0x01,
+                        Keycode::Left => joypad_dpad |= 0x02,
+                        Keycode::Up => joypad_dpad |= 0x04,
+                        Keycode::Down => joypad_dpad |= 0x08,
+                        Keycode::Z => joypad_buttons |= 0x01,
+                        Keycode::X => joypad_buttons |= 0x02,
+                        Keycode::Return => joypad_buttons |= 0x08,
                         Keycode::Backspace => joypad_buttons |= 0x04,
                         _ => {}
                     }
@@ -106,9 +114,12 @@ fn main() {
         }
         let surface = Surface::from_data(
             pixels.as_mut_slice(),
-            160, 144, 160 * 4,
+            160,
+            144,
+            160 * 4,
             texture_creator.default_pixel_format(),
-        ).unwrap();
+        )
+        .unwrap();
         let texture = Texture::from_surface(&surface, &texture_creator).unwrap();
         canvas.clear();
         canvas.copy(&texture, None, None).unwrap();
@@ -121,5 +132,3 @@ fn main() {
         }
     }
 }
-
-
