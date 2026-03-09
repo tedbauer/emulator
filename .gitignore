@@ -5,8 +5,6 @@
 /roms/*.rom
 /roms/*.gb
 
-# BIOS firmware
-/bios/*.rom
 
 # WASM build output
 /web/pkg
