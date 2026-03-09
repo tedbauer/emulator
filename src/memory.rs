@@ -15,6 +15,8 @@ pub trait MemoryAccess {
     fn generate_memory_rgba(&self, buffer: &mut [u8]);
     /// Update joypad state. buttons/dpad: bit=0 means pressed (active-low).
     fn set_joypad(&mut self, buttons: u8, dpad: u8);
+    /// Tick APU by `cycles` T-cycles; returns a stereo sample when one is ready.
+    fn tick_apu_sample(&mut self, cycles: u32) -> Option<(i16, i16)>;
     /// Tick APU by `cycles` T-cycles, pushing any generated samples into the queue.
     #[cfg(not(target_arch = "wasm32"))]
     fn tick_apu_into_queue(&mut self, cycles: u32, queue: &Arc<Mutex<VecDeque<i16>>>);
@@ -283,6 +285,10 @@ impl MemoryAccess for Memory {
     fn set_joypad(&mut self, buttons: u8, dpad: u8) {
         self.joypad_buttons = buttons;
         self.joypad_dpad = dpad;
+    }
+
+    fn tick_apu_sample(&mut self, cycles: u32) -> Option<(i16, i16)> {
+        self.apu.tick(cycles)
     }
 
     #[cfg(not(target_arch = "wasm32"))]

@@ -39,6 +39,8 @@ pub struct Emulator {
     joypad_dpad: u8,
     // Instruction log: most-recent first, capped at LOG_CAPACITY entries
     instruction_log: VecDeque<String>,
+    // Audio: stereo f32 samples accumulated during tick(), drained by JS each frame
+    audio_buf: Vec<f32>,
 }
 
 #[wasm_bindgen]
@@ -56,6 +58,7 @@ impl Emulator {
             joypad_buttons: 0xFF,
             joypad_dpad: 0xFF,
             instruction_log: VecDeque::with_capacity(LOG_CAPACITY),
+            audio_buf: Vec::with_capacity(4096),
         }
     }
 
@@ -64,7 +67,11 @@ impl Emulator {
     pub fn tick(&mut self) {
         loop {
             let (time_increment, instr) = self.cpu.step(&mut self.memory);
-            // Push instruction to log (most-recent first)
+            // Accumulate APU samples (stereo f32, interleaved L/R)
+            if let Some((l, r)) = self.memory.tick_apu_sample(time_increment.t as u32) {
+                self.audio_buf.push(l as f32 / 32768.0);
+                self.audio_buf.push(r as f32 / 32768.0);
+            }
             if self.instruction_log.len() == LOG_CAPACITY {
                 self.instruction_log.pop_back();
             }
@@ -81,6 +88,14 @@ impl Emulator {
                 break;
             }
         }
+    }
+
+    /// Drains and returns accumulated stereo audio samples as f32 in [-1, 1].
+    /// Interleaved: [L0, R0, L1, R1, ...]. Call this once per frame after tick().
+    pub fn get_audio_samples(&mut self) -> Vec<f32> {
+        let mut out = Vec::new();
+        std::mem::swap(&mut out, &mut self.audio_buf);
+        out
     }
 
     /// Returns the current frame as an RGBA byte vector (160×144×4 bytes).

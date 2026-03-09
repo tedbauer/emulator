@@ -19,16 +19,55 @@ const TILESET_W = 128;
 const TILESET_H = 192;
 const MEMMAP_W = 256;
 const MEMMAP_H = 256;
+const SAMPLE_RATE = 44100;
 
 let emulator = null;
 let animFrame = null;
 
-// Which debug sections are currently visible
-const visible = { "tileset-section": false, "memmap-section": false, "ilog-section": false };
+// ---------------------------------------------------------------------------
+// Web Audio
+// ---------------------------------------------------------------------------
+
+let audioCtx = null;
+let nextAudioTime = 0;           // scheduled end of queued audio (audioCtx.currentTime)
+const AUDIO_AHEAD = 0.08;        // seconds to buffer ahead (80 ms)
+
+function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SAMPLE_RATE });
+    nextAudioTime = audioCtx.currentTime + AUDIO_AHEAD;
+}
+
+function scheduleAudio(samples) {
+    if (!audioCtx || samples.length < 2) return;
+
+    const numFrames = samples.length >> 1; // stereo interleaved → frame count
+    const buf = audioCtx.createBuffer(2, numFrames, SAMPLE_RATE);
+    const l = buf.getChannelData(0);
+    const r = buf.getChannelData(1);
+    for (let i = 0; i < numFrames; i++) {
+        l[i] = samples[i * 2];
+        r[i] = samples[i * 2 + 1];
+    }
+
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+    if (nextAudioTime < now) {
+        // We fell behind — resync
+        nextAudioTime = now + AUDIO_AHEAD;
+    }
+    src.start(nextAudioTime);
+    nextAudioTime += buf.duration;
+}
 
 // ---------------------------------------------------------------------------
-// Per-section toggle buttons
+// Per-section debug toggle buttons
 // ---------------------------------------------------------------------------
+
+const visible = { "tileset-section": false, "memmap-section": false, "ilog-section": false };
 
 document.querySelectorAll(".dbg-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -51,6 +90,10 @@ async function startEmulator(romBytes) {
         animFrame = null;
     }
 
+    initAudio();
+    // Resume context if suspended (browser autoplay policy)
+    if (audioCtx.state === "suspended") await audioCtx.resume();
+
     emulator = new Emulator(romBytes);
     dropZone.style.display = "none";
     emuArea.style.display = "flex";
@@ -62,21 +105,22 @@ async function startEmulator(romBytes) {
 function loop() {
     emulator.tick();
 
-    // Main screen — always rendered
+    // Main screen
     const pixels = new Uint8ClampedArray(emulator.get_framebuffer());
     ctx.putImageData(new ImageData(pixels, SCREEN_W, SCREEN_H), 0, 0);
 
-    // Debug views — only computed when visible
+    // Audio — drain samples and schedule playback
+    scheduleAudio(emulator.get_audio_samples());
+
+    // Debug views — only when visible
     if (visible["tileset-section"]) {
         const tileset = new Uint8ClampedArray(emulator.get_tileset());
         tilesetCtx.putImageData(new ImageData(tileset, TILESET_W, TILESET_H), 0, 0);
     }
-
     if (visible["memmap-section"]) {
         const memmap = new Uint8ClampedArray(emulator.get_memory_map());
         memmapCtx.putImageData(new ImageData(memmap, MEMMAP_W, MEMMAP_H), 0, 0);
     }
-
     if (visible["ilog-section"]) {
         ilogPre.textContent = emulator.get_instruction_log();
     }
@@ -85,7 +129,7 @@ function loop() {
 }
 
 // ---------------------------------------------------------------------------
-// Keyboard input
+// Keyboard input — also resume AudioContext on first keypress
 // ---------------------------------------------------------------------------
 
 const PREVENT_SCROLL = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"]);
@@ -93,6 +137,7 @@ const PREVENT_SCROLL = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight
 window.addEventListener("keydown", (e) => {
     if (!emulator) return;
     if (PREVENT_SCROLL.has(e.key)) e.preventDefault();
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
     emulator.key_down(e.code);
 });
 
