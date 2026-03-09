@@ -996,26 +996,30 @@ impl Codegen {
         // BG map at $9800; address = $9800 + ty*32 + tx
         self.place_label("__builtin_set_bg_tile");
         // HL = $9800 + D*32 + E
-        self.ld_a_d(); // A = ty
-        // A * 32 = A << 5: we do ADD A,A five times.
-        // For ty >= 8, this overflows u8 — the carry holds the MSB.
+        self.ld_a_d();  // A = ty
+        self.ld_b_a(); // B = ty  (save for L computation)
+
+        // H = $98 + (ty >> 3)  — the high byte of the BG map address.
+        // SRL A three times (CB 3F = SRL A, logical right shift).
+        self.emit(0xCB); self.emit(0x3F); // SRL A  → ty>>1
+        self.emit(0xCB); self.emit(0x3F); // SRL A  → ty>>2
+        self.emit(0xCB); self.emit(0x3F); // SRL A  → ty>>3
+        self.add_a_n(0x98);               // A = $98 + (ty>>3)
+        self.ld_h_a();                    // H = correct high byte
+
+        // L = (ty << 5) & 0xFF  — the low byte of ty*32.
+        self.ld_a_b();  // A = ty (restored from B)
         for _ in 0..5 {
-            self.emit(0x87); // ADD A, A
+            self.emit(0x87); // ADD A, A  ×5  → A = (ty*32) & 0xFF
         }
-        self.ld_l_a();     // L = (ty*32) & 0xFF  (carry flag preserved by LD)
-        // H = $98 + carry: ensures correct address for ty >= 8
-        self.ld_a_n(0x98); // A = $98  (LD immediate does NOT affect carry)
-        self.emit(0xCE);
-        self.emit(0x00);   // ADC A, $00  →  A = $98 + carry_from_shift
-        self.ld_h_a();     // H = high byte of BG map address
-        // HL += tx (E)
+        self.ld_l_a(); // L = low byte
+
+        // HL += tx (E), propagating carry into H
         self.ld_a_e();
-        self.emit(0x85); // ADD A, L
+        self.emit(0x85); // ADD A, L → A = tx + L
         self.ld_l_a();
-        // Carry from tx addition into H
         self.ld_a_h2();
-        self.emit(0xCE);
-        self.emit(0x00); // ADC A, $00
+        self.emit(0xCE); self.emit(0x00); // ADC A, $00
         self.ld_h_a();
         // Store tile
         self.ld_a_b();
