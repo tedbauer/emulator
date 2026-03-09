@@ -27,7 +27,6 @@
             min-height: 100vh;
         }
 
-        /* ── Vertical centering wrapper ── */
         #center-wrap {
             flex: 1;
             display: flex;
@@ -39,18 +38,77 @@
             width: 100%;
         }
 
-        /* ── Main row ── */
+        /* ── Main row: sidebar + editor + screen ── */
         #main-row {
             display: flex;
-            gap: 20px;
+            gap: 14px;
             align-items: stretch;
+        }
+
+        /* ── Left sidebar ── */
+        #sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 130px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-btn {
+            background: #fff;
+            border: 2px solid #111;
+            border-radius: 10px;
+            color: #111;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 400;
+            padding: 10px 12px;
+            box-shadow: 4px 4px 0 #111;
+            transition: box-shadow 0.1s, transform 0.1s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-btn:hover {
+            box-shadow: 2px 2px 0 #111;
+        }
+
+        .sidebar-btn:active {
+            transform: scale(0.98);
+            box-shadow: 1px 1px 0 #111;
+        }
+
+        .sidebar-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: 4px 4px 0 #111;
+        }
+
+        #run-btn {
+            background: #111;
+            color: #c8f0d8;
+            font-weight: 700;
+            font-size: 0.88rem;
+        }
+
+        #run-btn:hover {
+            background: #222;
+        }
+
+        .sidebar-sep {
+            border: none;
+            border-top: 1px solid #aad8b8;
+            margin: 2px 0;
         }
 
         /* ── Editor pane ── */
         #editor-pane {
             display: flex;
             flex-direction: column;
-            width: 420px;
+            width: 400px;
             border: 2px solid #111;
             border-radius: 12px;
             overflow: hidden;
@@ -58,48 +116,28 @@
             background: #fffde7;
         }
 
-        /* Header row: logo + actions */
-        #editor-header {
+        /* Tab bar only — no action buttons */
+        #tab-bar-wrap {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
             background: #111;
-            color: #fff;
-            flex-shrink: 0;
-        }
-
-        #logo {
-            font-size: 0.82rem;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        /* Tab bar */
-        #tab-bar {
-            display: flex;
-            align-items: flex-end;
+            padding: 6px 8px 0;
             gap: 2px;
-            flex: 1;
-            overflow-x: auto;
-            scrollbar-width: none;
-            padding: 0 4px;
-        }
-
-        #tab-bar::-webkit-scrollbar {
-            display: none;
+            flex-shrink: 0;
+            min-height: 34px;
         }
 
         .tab {
             display: flex;
             align-items: center;
             gap: 5px;
-            padding: 3px 10px 3px 12px;
+            padding: 4px 10px 4px 12px;
             background: #333;
-            color: #aaa;
+            color: #999;
             border-radius: 6px 6px 0 0;
             cursor: pointer;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
+            font-family: 'Menlo', 'Consolas', monospace;
             white-space: nowrap;
             transition: background 0.1s;
             user-select: none;
@@ -107,6 +145,7 @@
 
         .tab:hover {
             background: #444;
+            color: #ccc;
         }
 
         .tab.active {
@@ -119,7 +158,7 @@
             border: none;
             color: inherit;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             line-height: 1;
             opacity: 0.5;
             padding: 0 1px;
@@ -129,85 +168,6 @@
             opacity: 1;
         }
 
-        /* Header action buttons */
-        .hdr-btn {
-            background: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 6px;
-            color: #ccc;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.7rem;
-            font-weight: 400;
-            padding: 3px 9px;
-            white-space: nowrap;
-            transition: background 0.1s;
-        }
-
-        .hdr-btn:hover {
-            background: #3a3a3a;
-            color: #fff;
-        }
-
-        #compile-btn {
-            background: #c8f0d8;
-            border: none;
-            border-radius: 6px;
-            color: #111;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.72rem;
-            font-weight: 700;
-            padding: 4px 12px;
-            white-space: nowrap;
-            transition: opacity 0.1s;
-        }
-
-        #compile-btn:hover {
-            opacity: 0.8;
-        }
-
-        #compile-btn:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-        }
-
-        /* Examples dropdown */
-        #examples-wrap {
-            position: relative;
-        }
-
-        #examples-menu {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            background: #222;
-            border: 1px solid #444;
-            border-radius: 8px;
-            padding: 4px;
-            min-width: 120px;
-            z-index: 100;
-            box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.4);
-        }
-
-        #examples-menu.hidden {
-            display: none;
-        }
-
-        .menu-item {
-            color: #ccc;
-            cursor: pointer;
-            font-size: 0.72rem;
-            padding: 6px 12px;
-            border-radius: 5px;
-        }
-
-        .menu-item:hover {
-            background: #333;
-            color: #fff;
-        }
-
-        /* Textarea */
         #code-editor {
             flex: 1;
             width: 100%;
@@ -240,7 +200,7 @@
             display: block;
         }
 
-        /* ── GB screen pane ── */
+        /* ── GB screen ── */
         #screen-pane {
             flex-shrink: 0;
             display: flex;
@@ -275,13 +235,13 @@
             gap: 14px;
             background: #f5f0e8;
             color: #999;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             pointer-events: none;
             user-select: none;
         }
 
         #screen-placeholder .ph-icon {
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             opacity: 0.4;
         }
 
@@ -294,10 +254,10 @@
             display: none;
         }
 
-        /* ── Terminal panel ── */
+        /* ── Terminal ── */
         #terminal-panel {
             width: 100%;
-            max-width: 920px;
+            max-width: 958px;
             border: 2px solid #111;
             border-radius: 10px;
             overflow: hidden;
@@ -306,39 +266,13 @@
         }
 
         #terminal-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
             padding: 5px 12px;
             background: #111;
-            color: #aaa;
+            color: #666;
             font-size: 0.68rem;
             font-family: 'Menlo', 'Consolas', monospace;
             letter-spacing: 0.04em;
-        }
-
-        #terminal-dots {
-            display: flex;
-            gap: 5px;
-        }
-
-        #terminal-dots span {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        #terminal-dots .dot-r {
-            background: #ff5f56;
-        }
-
-        #terminal-dots .dot-y {
-            background: #ffbd2e;
-        }
-
-        #terminal-dots .dot-g {
-            background: #27c93f;
+            border-bottom: 1px solid #222;
         }
 
         #terminal-output {
@@ -348,7 +282,7 @@
             line-height: 1.8;
             color: #b0c090;
             min-height: 52px;
-            max-height: 120px;
+            max-height: 100px;
             overflow-y: auto;
         }
 
@@ -366,7 +300,7 @@
         }
 
         .term-dim {
-            color: #666;
+            color: #555;
         }
 
         .term-info {
@@ -379,7 +313,7 @@
             align-items: center;
             gap: 20px;
             width: 100%;
-            max-width: 920px;
+            max-width: 958px;
         }
 
         #status {
@@ -449,7 +383,7 @@
             gap: 12px;
             padding: 0 24px 24px;
             width: 100%;
-            max-width: 920px;
+            max-width: 958px;
         }
 
         .debug-section {
@@ -509,22 +443,22 @@
 
     <div id="center-wrap">
 
-        <!-- Main row: editor + GB screen -->
         <div id="main-row">
 
-            <!-- Shrimp editor -->
+            <!-- Left sidebar -->
+            <div id="sidebar">
+                <button class="sidebar-btn" id="run-btn" disabled>▶&nbsp; Run</button>
+                <hr class="sidebar-sep" />
+                <button class="sidebar-btn" id="new-file-btn">＋&nbsp; New</button>
+                <button class="sidebar-btn" id="demo-btn">🏓&nbsp; Load demo</button>
+                <label class="sidebar-btn" for="rom-input">📂&nbsp; Load .gb</label>
+                <input type="file" id="rom-input" accept=".gb,.rom" />
+            </div>
+
+            <!-- Editor -->
             <div id="editor-pane">
-                <div id="editor-header">
-                    <span id="logo">🦐 Shrimp</span>
+                <div id="tab-bar-wrap">
                     <div id="tab-bar"></div>
-                    <div id="examples-wrap">
-                        <button class="hdr-btn" id="examples-btn">Examples ▾</button>
-                        <div id="examples-menu" class="hidden">
-                            <div class="menu-item" data-example="pong">🏓 Pong</div>
-                        </div>
-                    </div>
-                    <button class="hdr-btn" id="new-file-btn">+ New</button>
-                    <button id="compile-btn" disabled>▶ Run</button>
                 </div>
                 <textarea id="code-editor" spellcheck="false"></textarea>
                 <div id="compile-error"></div>
@@ -546,30 +480,17 @@
 
         </div>
 
-        <!-- Terminal panel -->
+        <!-- Terminal -->
         <div id="terminal-panel">
-            <div id="terminal-header">
-                <div id="terminal-dots">
-                    <span class="dot-r"></span>
-                    <span class="dot-y"></span>
-                    <span class="dot-g"></span>
-                </div>
-                shrimp compiler — output
-            </div>
+            <div id="terminal-header">shrimp compiler — output</div>
             <div id="terminal-output">
                 <span class="term-line term-dim">Waiting for compilation…</span>
             </div>
         </div>
 
-        <!-- Bottom bar — fixed layout, never shifts -->
+        <!-- Bottom bar -->
         <div id="bottom-bar">
             <div id="status">Ready.</div>
-            <div id="controls-hint">
-                Arrow keys: D-pad &nbsp;·&nbsp; Z: A &nbsp;·&nbsp; X: B &nbsp;·&nbsp;
-                Enter: Start &nbsp;·&nbsp; Shift: Select
-            </div>
-            <label class="load-rom-btn" for="rom-input">Load ROM</label>
-            <input type="file" id="rom-input" accept=".gb,.rom" />
             <div id="debug-toggles">
                 <button class="dbg-btn" data-target="tileset-section">Tileset</button>
                 <button class="dbg-btn" data-target="memmap-section">Memory</button>
@@ -577,9 +498,9 @@
             </div>
         </div>
 
-    </div><!-- #center-wrap -->
+    </div>
 
-    <!-- Debug panels outside center-wrap so they don't affect vertical centering -->
+    <!-- Debug panels outside center-wrap -->
     <div id="debug-panels">
         <div class="debug-section" id="tileset-section" style="display:none">
             <h3>VRAM Tileset</h3>

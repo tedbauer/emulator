@@ -15,12 +15,11 @@ const status = document.getElementById("status");
 const placeholder = document.getElementById("screen-placeholder");
 
 const codeEditor = document.getElementById("code-editor");
-const compileBtn = document.getElementById("compile-btn");
+const runBtn = document.getElementById("run-btn");
+const newFileBtn = document.getElementById("new-file-btn");
+const demoBtn = document.getElementById("demo-btn");
 const compileError = document.getElementById("compile-error");
 const tabBar = document.getElementById("tab-bar");
-const newFileBtn = document.getElementById("new-file-btn");
-const examplesBtn = document.getElementById("examples-btn");
-const examplesMenu = document.getElementById("examples-menu");
 const termOutput = document.getElementById("terminal-output");
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
@@ -32,10 +31,7 @@ const MEMMAP_W = 256;
 const MEMMAP_H = 256;
 
 // ── Example sources ───────────────────────────────────────────────────────────
-const EXAMPLES = {
-    pong: {
-        name: "pong.s",
-        content: `from core import pressed, set_sprite, Button
+const PONG_SOURCE = `from core import pressed, set_sprite, Button
 
 tile ball:
     ..3333..
@@ -104,11 +100,9 @@ on vblank:
     set_sprite(1, px, 136, paddle)
     set_sprite(2, px + 8, 136, paddle)
     set_sprite(3, px + 16, 136, paddle)
-`
-    }
-};
+`;
 
-// ── File system state ─────────────────────────────────────────────────────────
+// ── File system ───────────────────────────────────────────────────────────────
 let files = [];   // [{ id, name, content }]
 let activeId = null;
 let nextId = 0;
@@ -121,7 +115,7 @@ function createFile(name, content = "") {
 }
 
 function activeFile() {
-    return files.find(f => f.id === activeId) || null;
+    return files.find(f => f.id === activeId) ?? null;
 }
 
 function saveActiveContent() {
@@ -135,7 +129,6 @@ function switchTo(id) {
     const f = activeFile();
     codeEditor.value = f ? f.content : "";
     renderTabs();
-    // Update header file name display
     document.title = f ? `${f.name} — Shrimp` : "Shrimp Editor";
 }
 
@@ -145,13 +138,10 @@ function closeFile(id) {
     if (idx === -1) return;
     files.splice(idx, 1);
     if (files.length === 0) {
-        // Open a blank file when last tab is closed
-        const newId = createFile(`untitled-${untitledCounter++}.s`, "");
-        switchTo(newId);
+        // Always keep at least one tab — open a blank one
+        switchTo(createFile(`untitled-${untitledCounter++}.s`, ""));
     } else {
-        // Switch to adjacent tab
-        const newIdx = Math.min(idx, files.length - 1);
-        switchTo(files[newIdx].id);
+        switchTo(files[Math.min(idx, files.length - 1)].id);
     }
 }
 
@@ -161,7 +151,6 @@ function renderTabs() {
     for (const f of files) {
         const tab = document.createElement("div");
         tab.className = "tab" + (f.id === activeId ? " active" : "");
-        tab.dataset.id = f.id;
 
         const nameSpan = document.createElement("span");
         nameSpan.className = "tab-name";
@@ -171,10 +160,7 @@ function renderTabs() {
         closeBtn.className = "tab-close";
         closeBtn.textContent = "×";
         closeBtn.title = "Close";
-        closeBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            closeFile(f.id);
-        });
+        closeBtn.addEventListener("click", e => { e.stopPropagation(); closeFile(f.id); });
 
         tab.appendChild(nameSpan);
         tab.appendChild(closeBtn);
@@ -183,33 +169,24 @@ function renderTabs() {
     }
 }
 
-// ── New file ──────────────────────────────────────────────────────────────────
+// ── Sidebar actions ───────────────────────────────────────────────────────────
+
+// + New — reuse an existing empty untitled tab if one exists
 newFileBtn.addEventListener("click", () => {
-    const id = createFile(`untitled-${untitledCounter++}.s`, "");
-    switchTo(id);
+    const existing = files.find(f => f.name.startsWith("untitled-") && f.content.trim() === "");
+    if (existing) { switchTo(existing.id); return; }
+    switchTo(createFile(`untitled-${untitledCounter++}.s`, ""));
 });
 
-// ── Examples dropdown ─────────────────────────────────────────────────────────
-examplesBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    examplesMenu.classList.toggle("hidden");
-});
-document.addEventListener("click", () => examplesMenu.classList.add("hidden"));
-
-document.querySelectorAll(".menu-item[data-example]").forEach(item => {
-    item.addEventListener("click", () => {
-        const ex = EXAMPLES[item.dataset.example];
-        if (!ex) return;
-        // If a file with this name is already open, switch to it
-        const existing = files.find(f => f.name === ex.name);
-        if (existing) { switchTo(existing.id); return; }
-        const id = createFile(ex.name, ex.content);
-        switchTo(id);
-    });
+// Load demo (Pong) — deduplicates
+demoBtn.addEventListener("click", () => {
+    const existing = files.find(f => f.name === "pong.s");
+    if (existing) { switchTo(existing.id); return; }
+    switchTo(createFile("pong.s", PONG_SOURCE));
 });
 
 // ── Tab key in editor ─────────────────────────────────────────────────────────
-codeEditor.addEventListener("keydown", (e) => {
+codeEditor.addEventListener("keydown", e => {
     if (e.key === "Tab") {
         e.preventDefault();
         const s = codeEditor.selectionStart;
@@ -219,9 +196,7 @@ codeEditor.addEventListener("keydown", (e) => {
 });
 
 // ── Terminal ──────────────────────────────────────────────────────────────────
-function termClear() {
-    termOutput.innerHTML = "";
-}
+function termClear() { termOutput.innerHTML = ""; }
 
 function termLine(text, cls = "") {
     const span = document.createElement("span");
@@ -319,8 +294,8 @@ async function startEmulator(romBytes) {
     animFrame = requestAnimationFrame(loop);
 }
 
-// ── Compile & Run ─────────────────────────────────────────────────────────────
-compileBtn.addEventListener("click", async () => {
+// ── Run button ────────────────────────────────────────────────────────────────
+runBtn.addEventListener("click", async () => {
     saveActiveContent();
     const f = activeFile();
     if (!f) return;
@@ -357,7 +332,7 @@ compileBtn.addEventListener("click", async () => {
         status.textContent = "Running.";
     } catch (err) {
         termLine(`✗  Emulator error: ${err}`, "term-err");
-        status.textContent = `Emulator error.`;
+        status.textContent = "Emulator error.";
         console.error(err);
     }
 });
@@ -378,7 +353,7 @@ window.addEventListener("keyup", e => {
     emulator.key_up(e.code);
 });
 
-// ── File load via picker ──────────────────────────────────────────────────────
+// ── Load .gb file ─────────────────────────────────────────────────────────────
 romInput.addEventListener("change", () => {
     const file = romInput.files[0];
     if (!file) return;
@@ -393,6 +368,8 @@ romInput.addEventListener("change", () => {
             .catch(err => { status.textContent = `Error: ${err}`; console.error(err); });
     };
     reader.readAsArrayBuffer(file);
+    // Reset so the same file can be re-loaded if needed
+    romInput.value = "";
 });
 
 // ── WASM init ─────────────────────────────────────────────────────────────────
@@ -400,11 +377,10 @@ romInput.addEventListener("change", () => {
     status.textContent = "Loading…";
     try {
         await Promise.all([initEmu(), initComp()]);
-        compileBtn.disabled = false;
+        runBtn.disabled = false;
         status.textContent = "Ready.";
         // Open Pong by default
-        const pongId = createFile(EXAMPLES.pong.name, EXAMPLES.pong.content);
-        switchTo(pongId);
+        switchTo(createFile("pong.s", PONG_SOURCE));
         termLine("🦐  Shrimp compiler ready", "term-ok");
         termLine("    Press ▶ Run to compile and play", "term-dim");
     } catch (err) {
