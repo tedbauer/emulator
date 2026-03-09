@@ -119,30 +119,40 @@ async function startEmulator(romBytes) {
     emuArea.style.display = "flex";
     status.textContent = "Running.";
 
-    loop();
+    lastFrameTime = 0;
+    loop(0);
 }
 
-function loop() {
-    emulator.tick();
+const TARGET_FPS = 59.7;
+const FRAME_MS = 1000 / TARGET_FPS; // ~16.75ms per game frame
+let lastFrameTime = 0;
 
-    // Main screen
-    const pixels = new Uint8ClampedArray(emulator.get_framebuffer());
-    ctx.putImageData(new ImageData(pixels, SCREEN_W, SCREEN_H), 0, 0);
+function loop(timestamp) {
+    const elapsed = timestamp - lastFrameTime;
+    if (elapsed >= FRAME_MS) {
+        lastFrameTime = timestamp - (elapsed % FRAME_MS);
 
-    // Audio — push this frame's samples into the ring buffer
-    pushAudio(emulator.get_audio_samples());
+        emulator.tick();
 
-    // Debug views — only computed when visible
-    if (visible["tileset-section"]) {
-        const tileset = new Uint8ClampedArray(emulator.get_tileset());
-        tilesetCtx.putImageData(new ImageData(tileset, TILESET_W, TILESET_H), 0, 0);
-    }
-    if (visible["memmap-section"]) {
-        const memmap = new Uint8ClampedArray(emulator.get_memory_map());
-        memmapCtx.putImageData(new ImageData(memmap, MEMMAP_W, MEMMAP_H), 0, 0);
-    }
-    if (visible["ilog-section"]) {
-        ilogPre.textContent = emulator.get_instruction_log();
+        // Main screen
+        const pixels = new Uint8ClampedArray(emulator.get_framebuffer());
+        ctx.putImageData(new ImageData(pixels, SCREEN_W, SCREEN_H), 0, 0);
+
+        // Audio
+        pushAudio(emulator.get_audio_samples());
+
+        // Debug views — only computed when visible
+        if (visible["tileset-section"]) {
+            const tileset = new Uint8ClampedArray(emulator.get_tileset());
+            tilesetCtx.putImageData(new ImageData(tileset, TILESET_W, TILESET_H), 0, 0);
+        }
+        if (visible["memmap-section"]) {
+            const memmap = new Uint8ClampedArray(emulator.get_memory_map());
+            memmapCtx.putImageData(new ImageData(memmap, MEMMAP_W, MEMMAP_H), 0, 0);
+        }
+        if (visible["ilog-section"]) {
+            ilogPre.textContent = emulator.get_instruction_log();
+        }
     }
 
     animFrame = requestAnimationFrame(loop);
