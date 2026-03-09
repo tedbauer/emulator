@@ -50,15 +50,19 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            width: 130px;
+            width: 152px;
             flex-shrink: 0;
-            position: relative;
         }
 
-        /* Demo picker dropdown */
+        /* Demo picker dropdown — anchored to #demo-wrap */
+        #demo-wrap {
+            position: relative;
+            width: 100%;
+        }
+
         #demo-picker {
             position: absolute;
-            top: 100%;
+            top: calc(100% + 4px);
             left: 0;
             right: 0;
             background: #fff;
@@ -67,7 +71,6 @@
             box-shadow: 4px 4px 0 #111;
             z-index: 200;
             overflow: hidden;
-            margin-top: 4px;
         }
 
         #demo-picker.hidden {
@@ -105,6 +108,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            width: 100%;
         }
 
         .sidebar-btn:hover {
@@ -123,14 +127,15 @@
         }
 
         #run-btn {
-            background: #111;
-            color: #c8f0d8;
+            background: #2e7d52;
+            color: #fff;
             font-weight: 700;
             font-size: 0.88rem;
+            border-color: #1d5c3c;
         }
 
         #run-btn:hover {
-            background: #222;
+            background: #256644;
         }
 
         .sidebar-sep {
@@ -507,9 +512,11 @@
                 <button class="sidebar-btn" id="run-btn" disabled>▶&nbsp; Run</button>
                 <hr class="sidebar-sep" />
                 <button class="sidebar-btn" id="new-file-btn">＋&nbsp; New .s</button>
-                <button class="sidebar-btn" id="demo-btn">🦐&nbsp; Load demo .s</button>
-                <div id="demo-picker" class="hidden">
-                    <div class="picker-item" data-name="pong.s">🏓&nbsp; Pong</div>
+                <div id="demo-wrap">
+                    <button class="sidebar-btn" id="demo-btn">🦐&nbsp; Demos ▾</button>
+                    <div id="demo-picker" class="hidden">
+                        <div class="picker-item" data-name="pong.s">🏓&nbsp; Pong</div>
+                    </div>
                 </div>
                 <label class="sidebar-btn" for="rom-input">📂&nbsp; Load .gb</label>
                 <input type="file" id="rom-input" accept=".gb,.rom" />
