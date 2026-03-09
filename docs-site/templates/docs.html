@@ -192,6 +192,27 @@
             color: #3a7a2a;
         }
 
+        .page-footer {
+            margin-top: 48px;
+            padding-top: 16px;
+            border-top: 1px solid #d6dcc8;
+        }
+
+        .page-footer a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #5d7a3a;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .page-footer a:hover {
+            color: #3a5a1a;
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             .layout { flex-direction: column; }
             .sidebar {
@@ -224,6 +245,11 @@
         </aside>
         <main class="main">
             {{content | safe}}
+            <div class="page-footer">
+                <a href="https://github.com/tedbauer/emulator/edit/master/docs-site/{{path}}" target="_blank" rel="noopener">
+                    ✏️ Send a pull request
+                </a>
+            </div>
         </main>
     </div>
     <script>
