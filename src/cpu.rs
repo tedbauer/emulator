@@ -1,12 +1,12 @@
-use crate::Gpu;
+#![allow(unused_variables)]
 use crate::MemoryAccess;
-use std::collections::VecDeque;
 use std::fmt;
-use std::fs;
+
 
 pub struct Cpu {
     registers: Registers,
     instruction_bank: [Instruction; 256],
+    #[allow(dead_code)]  // used by WASM frontend
     cb_instruction_bank: [Instruction; 256],
     pub ime: bool,
     pub halted: bool,
@@ -107,21 +107,21 @@ pub struct Registers {
 
 impl fmt::Debug for Registers {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[a: {:#02x}]", self.a);
-        write!(f, "[b: {:#02x}]", self.b);
-        write!(f, "[c: {:#02x}]", self.c);
-        write!(f, "[d: {:#02x}]", self.d);
-        write!(f, "[e: {:#02x}]", self.e);
-        write!(f, "[f: {:#02x}]", self.f);
-        write!(f, "[g: {:#02x}]", self.g);
-        write!(f, "[h: {:#02x}]", self.h);
-        write!(f, "[l: {:#02x}]", self.l);
-        write!(f, "[pc: {:#04x}]", self.program_counter);
-        write!(f, "[sp: {:#04x}]", self.stack_pointer);
-        write!(f, " | [Z: {}", self.read_flag(FlagBit::Z));
-        write!(f, " | N: {}", self.read_flag(FlagBit::N));
-        write!(f, " | H: {}", self.read_flag(FlagBit::H));
-        write!(f, " | C: {}", self.read_flag(FlagBit::C));
+        write!(f, "[a: {:#02x}]", self.a)?;
+        write!(f, "[b: {:#02x}]", self.b)?;
+        write!(f, "[c: {:#02x}]", self.c)?;
+        write!(f, "[d: {:#02x}]", self.d)?;
+        write!(f, "[e: {:#02x}]", self.e)?;
+        write!(f, "[f: {:#02x}]", self.f)?;
+        write!(f, "[g: {:#02x}]", self.g)?;
+        write!(f, "[h: {:#02x}]", self.h)?;
+        write!(f, "[l: {:#02x}]", self.l)?;
+        write!(f, "[pc: {:#04x}]", self.program_counter)?;
+        write!(f, "[sp: {:#04x}]", self.stack_pointer)?;
+        write!(f, " | [Z: {}", self.read_flag(FlagBit::Z))?;
+        write!(f, " | N: {}", self.read_flag(FlagBit::N))?;
+        write!(f, " | H: {}", self.read_flag(FlagBit::H))?;
+        write!(f, " | C: {}", self.read_flag(FlagBit::C))?;
         write!(f, "]")
     }
 }
@@ -142,12 +142,6 @@ fn write_bit(original_value: u8, bit: u8, value: bool) -> u8 {
     }
 }
 
-fn stop_and_dump(regs: &mut Registers, mem: &mut Box<dyn MemoryAccess>) {
-    let memdump = format!("{:?}", mem);
-    fs::write("memdump.txt", memdump);
-    println!("{:?}", regs);
-    panic!("done");
-}
 
 impl Registers {
     fn write_flag(&mut self, bit: FlagBit, value: bool) {
@@ -171,6 +165,7 @@ impl Registers {
 
 #[derive(Default, Clone)]
 pub struct TimeIncrement {
+    #[allow(dead_code)]  // used by WASM timing
     pub m: u8,
     pub t: u8,
 }
@@ -207,7 +202,7 @@ fn lower_eight_bits(n: u16) -> u8 {
 }
 
 fn read_bit(n: u8, bit: u8) -> bool {
-    if (bit > 7) {
+    if bit > 7 {
         panic!("bit > 7");
     }
     n & (1 << bit) == (1 << bit)

@@ -2,27 +2,15 @@ mod cpu;
 mod gpu;
 mod memory;
 
-use cpu::instructions;
 use cpu::Cpu;
-use cpu::Instruction;
 use gpu::Gpu;
 use memory::Memory;
 use memory::MemoryAccess;
-use rand::Rng;
-use sdl2;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color;
-use sdl2::pixels::PixelFormatEnum;
-use sdl2::rect::Rect;
-use sdl2::render::Canvas;
-use sdl2::render::Texture;
+use sdl2::render::{Canvas, Texture};
 use sdl2::surface::Surface;
 use sdl2::video::Window;
-use std::cell::{RefCell, RefMut};
-use std::fs;
-use std::fs::File;
-use std::io::Write;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

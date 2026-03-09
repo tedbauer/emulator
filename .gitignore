@@ -1,3 +1,16 @@
+# Rust build artifacts
 /target
-memdump.txt
-*_game.rom
+
+# ROM files (legal reasons — add your own)
+/roms/*.rom
+/roms/*.gb
+
+# BIOS firmware (copyrighted — not redistributable, provide your own DMG boot ROM)
+/bios/*.rom
+
+# WASM build output
+/pkg
+
+# Debug artifacts
+/debugging
+build_log.txt

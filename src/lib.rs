@@ -1,4 +1,7 @@
+// WASM frontend — items here are used by the browser build target, not the native binary.
+#![allow(dead_code)]
 // Place your existing module declarations here
+
 mod cpu;
 mod gpu;
 mod memory;
@@ -11,9 +14,8 @@ use wasm_bindgen::prelude::*;
 use cpu::Cpu;
 use gpu::Gpu;
 use memory::{Memory, MemoryAccess};
-
 use std::collections::VecDeque;
-// ... other imports
+
 
 // ADD: A constant for our log capacity
 const LOG_CAPACITY: usize = 20;
@@ -53,7 +55,7 @@ impl Emulator {
         panic::set_hook(Box::new(console_error_panic_hook::hook));
 
         // Initialize memory with the ROM data passed from JavaScript.
-        let mut memory = Box::new(Memory::initialize_with_rom(rom_data)) as Box<dyn MemoryAccess>;
+        let memory = Box::new(Memory::initialize_with_rom(rom_data)) as Box<dyn MemoryAccess>;
 
         Emulator {
             cpu: Cpu::initialize(),
@@ -133,7 +135,7 @@ impl Emulator {
     }
 
     /// Handles key down events from the browser.
-    pub fn key_down(&mut self, key_code: String) {
+    pub fn key_down(&mut self, _key_code: String) {
         // Here you would map the JavaScript key_code to your
         // emulator's joypad registers.
         // For example:
@@ -145,7 +147,7 @@ impl Emulator {
     }
 
     /// Handles key up events from the browser.
-    pub fn key_up(&mut self, key_code: String) {
+    pub fn key_up(&mut self, _key_code: String) {
         // Similarly, handle key releases to update the joypad state.
     }
 }

@@ -1,5 +1,6 @@
+#![allow(dead_code)] // some methods are WASM-only APIs
 use std::fmt;
-use std::fs;
+
 
 pub trait MemoryAccess {
     fn read_byte(&self, addr: u16) -> u8;
@@ -28,13 +29,13 @@ pub struct Memory {
 
 impl fmt::Debug for dyn MemoryAccess {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for byte in 0..=65_535 {
+        for byte in 0..=65_535u32 {
             if byte == 0 {
-                write!(f, "-- BIOS --\n");
+                write!(f, "-- BIOS --\n")?;
             } else if byte == 256 {
-                write!(f, "-- ROM -- \n");
+                write!(f, "-- ROM -- \n")?;
             }
-            write!(f, "{:#04x} : {:#02x}\n", byte, self.read_byte(byte));
+            write!(f, "{:#04x} : {:#02x}\n", byte, self.read_byte(byte as u16))?;
         }
         write!(f, "Done")
     }
@@ -42,7 +43,7 @@ impl fmt::Debug for dyn MemoryAccess {
 
 impl Memory {
     pub fn initialize(rom_path: &str) -> Self {
-        let bios: [u8; 256] = include_bytes!("../roms/bios.rom").clone();
+        let bios: [u8; 256] = include_bytes!("../bios/bios.rom").clone();
         let rom: Vec<u8> = std::fs::read(rom_path)
             .unwrap_or_else(|e| panic!("Failed to read ROM '{}': {}", rom_path, e));
         let mbc_type = if rom.len() > 0x148 { rom[0x147] } else { 0 };
@@ -61,7 +62,7 @@ impl Memory {
 
     /// Initialize with ROM data provided at runtime (used by WASM frontend).
     pub fn initialize_with_rom(rom_data: Vec<u8>) -> Self {
-        let bios: [u8; 256] = include_bytes!("../roms/bios.rom").clone();
+        let bios: [u8; 256] = include_bytes!("../bios/bios.rom").clone();
         let mbc_type = if rom_data.len() > 0x148 { rom_data[0x147] } else { 0 };
         Self {
             bios,
