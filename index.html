@@ -78,12 +78,17 @@
             display: block;
         }
 
-        /* --- Debug sidebar --- */
-        #debug-sidebar {
+        /* left column: screen on top, below panels row underneath */
+        #left-col {
             display: flex;
             flex-direction: column;
             gap: 12px;
-            min-width: 0;
+        }
+
+        #below-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
         }
 
         .debug-section {
@@ -191,21 +196,23 @@
 
     <div id="emu-area">
         <div id="game-row">
-            <canvas id="screen" width="160" height="144"></canvas>
+            <div id="left-col">
+                <canvas id="screen" width="160" height="144"></canvas>
+                <div id="below-row">
+                    <div class="debug-section" id="memmap-section" style="display:none">
+                        <h3>Memory Map</h3>
+                        <canvas id="memmap-canvas" class="debug-canvas" width="256" height="256"></canvas>
+                    </div>
+                    <div class="debug-section" id="ilog-section" style="display:none">
+                        <h3>Instructions</h3>
+                        <pre id="ilog-pre"></pre>
+                    </div>
+                </div>
+            </div>
 
-            <div id="debug-sidebar">
-                <div class="debug-section" id="tileset-section" style="display:none">
-                    <h3>VRAM Tileset</h3>
-                    <canvas id="tileset-canvas" class="debug-canvas" width="128" height="192"></canvas>
-                </div>
-                <div class="debug-section" id="memmap-section" style="display:none">
-                    <h3>Memory Map</h3>
-                    <canvas id="memmap-canvas" class="debug-canvas" width="256" height="256"></canvas>
-                </div>
-                <div class="debug-section" id="ilog-section" style="display:none">
-                    <h3>Instructions</h3>
-                    <pre id="ilog-pre"></pre>
-                </div>
+            <div class="debug-section" id="tileset-section" style="display:none">
+                <h3>VRAM Tileset</h3>
+                <canvas id="tileset-canvas" class="debug-canvas" width="128" height="192"></canvas>
             </div>
         </div>
 
