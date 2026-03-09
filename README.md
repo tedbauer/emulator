@@ -2,7 +2,7 @@
 
 A Game Boy emulator written in Rust.
 
-I started this in 2023, getting far enough to see the Nintendo boot. In 2026, I picked it back up and used Claude Sonnet 4.6 and Gemini 3.1 Pro (High), in the Antigravity harness. It picked up where I left off and finished the CPU, GPU, and APU to the point of running full commercial games with input and sound.
+I started working on this in 2023, getting far enough to see the Nintendo boot. In 2026, I picked it back up again and used Claude Sonnet 4.6 and Gemini 3.1 Pro (High), in the Antigravity harness. They picked up where I left off and finished the CPU, GPU, and APU to the point of running full commercial games with input and sound.
 
 ## Building
 
