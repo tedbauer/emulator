@@ -112,6 +112,7 @@ let activeId = null;
 let nextId   = 0;
 let untitledCounter = 1;
 let compilerReady   = false;
+let runningId       = null;  // id of the file currently in the emulator
 
 function createFile(name, content = "") {
     const id = nextId++;
@@ -167,7 +168,9 @@ function renderTabs() {
     tabBar.innerHTML = "";
     for (const f of files) {
         const tab = document.createElement("div");
-        tab.className = "tab" + (f.id === activeId ? " active" : "");
+        tab.className = "tab" +
+            (f.id === activeId  ? " active"  : "") +
+            (f.id === runningId ? " running" : "");
 
         const nameSpan = document.createElement("span");
         nameSpan.className = "tab-name";
@@ -371,7 +374,9 @@ runBtn.addEventListener("click", async () => {
 
     try {
         await startEmulator(romBytes);
-        termLine(`▶  Running in emulator`, "term-info");
+        runningId = f.id;
+        renderTabs();
+        termLine(`▶  Running ${f.name} in emulator`, "term-info");
         status.textContent = "Running.";
     } catch (err) {
         termLine(`✗  Emulator error: ${err}`, "term-err");

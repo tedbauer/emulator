@@ -217,6 +217,20 @@
             color: #111;
         }
 
+        .tab.running .tab-name::before {
+            content: '●';
+            color: #2e7d52;
+            font-size: 0.5rem;
+            margin-right: 4px;
+            vertical-align: middle;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.35; }
+        }
+
         .tab-close {
             background: none;
             border: none;
