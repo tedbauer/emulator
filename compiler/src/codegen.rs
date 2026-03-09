@@ -69,6 +69,11 @@ impl Codegen {
         self.labels.insert(name.to_string(), offset);
     }
 
+    /// Return the absolute ROM address of a previously placed label.
+    pub fn label_addr(&self, name: &str) -> Option<u16> {
+        self.labels.get(name).copied()
+    }
+
     fn emit_label_addr(&mut self, name: &str) {
         self.bytes.push(Byte::LabelLo(name.to_string()));
         self.bytes.push(Byte::LabelHi(name.to_string()));
@@ -694,42 +699,33 @@ impl Codegen {
     pub fn emit_builtins(&mut self, need_just_pressed: bool) -> Result<(), String> {
         // ── __builtin_set_sprite ────────────────────────────────────────────
         // In: B=index, D=Y+16, E=X+8, H=tile
-        // Computes OAM address = $FE00 + B*4 → HL
+        // OAM entry layout: [Y+16, X+8, tile, attrs]  at $FE00 + index*4
         self.place_label("__builtin_set_sprite");
+        // Save tile (H will be overwritten when we set HL = $FE00 + B*4)
+        self.ld_a_h();          // A = tile
+        self.push_af();         // tile saved on stack
         // HL = $FE00 + B*4
-        self.ld_hl_n(0xFE00);
-        // Add B*4: B*4 = B<<2; use loop or shifts
-        // Shift A left 2: LD A, B; ADD A,A; ADD A,A
-        self.ld_a_b();
-        self.emit(0x87); // ADD A, A  (×2)
-        self.emit(0x87); // ADD A, A  (×4)
-        self.ld_l_a();   // HL.lo = B*4 (assuming no carry into H for ≤40 sprites)
-        // Clear high byte adjustment: HL = $FE00 | lo
-        // Actually LD H, $FE is already in H. LD L already done.
-        // Wait: LD HL, $FE00 set H=$FE, L=$00.  Then LD L, A sets L=B*4. ✓
-        // Store Y+16
-        self.ld_hl_a(); // oops — need to store D, not A. Let me use (HL) with D.
-        // Actually let's use:  LD A,D; LD (HL),A; INC HL; LD A,E; LD (HL),A; etc.
-        // Re-emit correctly:
-        // We already wrongly emitted ld_hl_a above. Patch: store D.
-        // This is getting tangled. Let me reset and emit raw bytes more carefully.
-        // The above emitted LD (HL), A which stored garbage. Let me just move on
-        // by emitting the correct sequence as raw bytes.
-        // Backing up is expensive in this approach, so let's embed the correct
-        // code as a sequence:
-        // (We already emitted LD (HL),A erroneously — that stores A=B*4 in OAM[0].Y.
-        //  This will be slightly wrong but close enough for a first compile attempt.
-        //  A proper fix is to restructure emit_builtins to use a scratch pad.)
-        // TODO: fix set_sprite to correct OAM writes. For now inc past Y slot and write X, tile, attr.
+        self.ld_a_b();          // A = index
+        self.emit(0x87);        // ADD A, A  (×2)
+        self.emit(0x87);        // ADD A, A  (×4)
+        self.ld_h_a();          // H = index*4  (temp; we'll set H=$FE next)
+        self.emit(0x26); self.emit(0xFE); // LD H, $FE
+        self.ld_l_a();          // L = index*4  → HL = $FE00 + index*4
+        // Write Y+16 (in D)
+        self.ld_a_d();
+        self.ld_hl_a();         // (HL) = Y+16
         self.inc_hl();
-        self.ld_a_e(); // A = X+8
-        self.emit(0x77); // LD (HL), A
+        // Write X+8 (in E)
+        self.ld_a_e();
+        self.ld_hl_a();         // (HL) = X+8
         self.inc_hl();
-        self.ld_a_h2(); // A = tile (stored in H)
-        self.emit(0x77); // LD (HL), A
+        // Write tile (from stack)
+        self.pop_af();          // A = tile
+        self.ld_hl_a();         // (HL) = tile
         self.inc_hl();
-        self.ld_a_n(0);  // attr = 0
-        self.emit(0x77);
+        // Write attrs = 0
+        self.xor_a();
+        self.ld_hl_a();         // (HL) = 0
         self.ret();
 
         // ── __builtin_pressed ──────────────────────────────────────────────

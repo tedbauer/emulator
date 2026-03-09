@@ -71,13 +71,16 @@ pub fn compile(src: &str) -> Result<Vec<u8>, String> {
 
     cg.emit_builtins(need_just_pressed)?;
 
+    // Read the vblank function address before finalize() consumes the labels
+    let vblank_addr = cg.label_addr("__vblank_fn").unwrap_or(0);
+
     let game_code = cg.finalize()?;
 
     let has_vblank = program.on_vblank.is_some();
 
     // 6. Build ROM
     let mut writer = RomWriter::new();
-    let rom = writer.build(&game_code, &tile_data, has_vblank);
+    let rom = writer.build(&game_code, &tile_data, has_vblank, vblank_addr);
 
     Ok(rom.to_vec())
 }

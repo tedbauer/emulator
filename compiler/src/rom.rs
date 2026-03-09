@@ -59,6 +59,7 @@ impl RomWriter {
         game_code: &[u8],
         tile_data: &[u8],
         has_vblank: bool,
+        vblank_addr: u16,
     ) -> &[u8] {
         const VBLANK_ISR:    usize = 0x0040;
         const ENTRY_POINT:   usize = 0x0100;
@@ -83,7 +84,7 @@ impl RomWriter {
         // $0040: VBlank ISR
         if has_vblank {
             // PUSH AF; PUSH BC; PUSH DE; PUSH HL; CALL user_vblank; POP HL; POP DE; POP BC; POP AF; RETI
-            let vblank_fn_addr = (GAME_CODE_START + find_label_offset(game_code, "__vblank_fn")) as u16;
+            let vblank_fn_addr = vblank_addr;
             let code: &[u8] = &[
                 0xF5,       // PUSH AF
                 0xC5,       // PUSH BC
@@ -113,7 +114,7 @@ impl RomWriter {
         self.write_slice(LOGO, &NINTENDO_LOGO);
 
         // ── Title ($0134-$013E) ───────────────────────────────────────────
-        let title = b"GBSCRIPT    ";
+        let title = b"SHRIMP      ";
         self.write_slice(TITLE, &title[..11]);
 
         // ── Cartridge type / size / dest ─────────────────────────────────
@@ -171,8 +172,9 @@ impl RomWriter {
         setup.extend_from_slice(&[0xE0, 0x48]);              // LDH (48),A  OBP0
         setup.extend_from_slice(&[0xE0, 0x49]);              // LDH (49),A  OBP1
 
-        // LCD on: LD A,$91; LDH (40),A   (LCD on, BG tile at $8000, BG on, Sprites on)
-        setup.extend_from_slice(&[0x3E, 0x91, 0xE0, 0x40]);
+        // LCD on: LD A,$93; LDH (40),A   (LCD on, BG on, Sprites on, tile data at $8000)
+        // $93 = bit7 (LCD on) | bit4 (BG tile $8000) | bit1 (OBJ/sprites on) | bit0 (BG on)
+        setup.extend_from_slice(&[0x3E, 0x93, 0xE0, 0x40]);
 
         // Enable VBlank interrupt: LD A,$01; LD (FFFF),A
         setup.extend_from_slice(&[0x3E, 0x01, 0xEA, 0xFF, 0xFF]);
@@ -202,12 +204,7 @@ impl RomWriter {
     }
 }
 
-/// Placeholder: in the current design game_code already has absolute addresses
-/// embedded by the codegen; we don't need to search for a label.
-/// This returns 0 because the vblank fn is just at the beginning of game_code.
-fn find_label_offset(_code: &[u8], _label: &str) -> usize {
-    0
-}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tile encoder: pixel grid → 2bpp Game Boy format
