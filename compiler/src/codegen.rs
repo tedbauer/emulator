@@ -997,17 +997,22 @@ impl Codegen {
         self.place_label("__builtin_set_bg_tile");
         // HL = $9800 + D*32 + E
         self.ld_a_d(); // A = ty
-                       // A * 32 = A << 5: we do ADD A,A five times
+        // A * 32 = A << 5: we do ADD A,A five times.
+        // For ty >= 8, this overflows u8 — the carry holds the MSB.
         for _ in 0..5 {
-            self.emit(0x87);
-        } // ADD A,A ×5
-        self.ld_l_a();
-        self.ld_h_n(0x98); // H = $98 (assuming no overflow from ty*32 into H)
-                           // HL += E
+            self.emit(0x87); // ADD A, A
+        }
+        self.ld_l_a();     // L = (ty*32) & 0xFF  (carry flag preserved by LD)
+        // H = $98 + carry: ensures correct address for ty >= 8
+        self.ld_a_n(0x98); // A = $98  (LD immediate does NOT affect carry)
+        self.emit(0xCE);
+        self.emit(0x00);   // ADC A, $00  →  A = $98 + carry_from_shift
+        self.ld_h_a();     // H = high byte of BG map address
+        // HL += tx (E)
         self.ld_a_e();
         self.emit(0x85); // ADD A, L
         self.ld_l_a();
-        // Carry into H
+        // Carry from tx addition into H
         self.ld_a_h2();
         self.emit(0xCE);
         self.emit(0x00); // ADC A, $00
