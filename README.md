@@ -4,6 +4,9 @@ A Game Boy emulator written in Rust.
 
 I started working on this in 2023 as a hobby project, spending a couple of months on it when I had the time. I got far enough to see the Nintendo boot screen before shelving it. In 2026, I picked it back up again and used Claude Sonnet 4.6 and Gemini 3.1 Pro (High), in the Antigravity harness. They picked up where I left off and finished the CPU, GPU, and APU to the point of running full commercial games with input and sound.
 
+![Browser frontend running Kirby's Dream Land with debug panels open](docs/screenshot.png)
+
+
 ## Building
 
 ### Native (SDL2)
