@@ -5,7 +5,7 @@
 /roms/*.rom
 /roms/*.gb
 
-# BIOS firmware (copyrighted — not redistributable, provide your own DMG boot ROM)
+# BIOS firmware
 /bios/*.rom
 
 # WASM build output

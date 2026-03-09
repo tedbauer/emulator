@@ -352,8 +352,6 @@ pub fn instructions() -> [Instruction; 256] {
                 registers.c = registers.c.wrapping_add(1);
                 registers.write_flag(FlagBit::Z, registers.c == 0);
                 registers.write_flag(FlagBit::N, false);
-                // TODO: write H if carry from bit 3? what
-
                 registers.program_counter += 1;
             }),
         },
@@ -365,9 +363,7 @@ pub fn instructions() -> [Instruction; 256] {
                 registers.c = registers.c.wrapping_sub(1);
                 registers.write_flag(FlagBit::Z, registers.c == 0);
                 registers.write_flag(FlagBit::N, true);
-                // TODO: no borrow from bit 4
                 registers.program_counter += 1;
-                //stop_and_dump(registers, memory);
             }),
         },
         Instruction {
@@ -604,7 +600,6 @@ pub fn instructions() -> [Instruction; 256] {
                 registers.h = upper_eight_bits(incremented_value);
                 registers.l = lower_eight_bits(incremented_value);
                 registers.program_counter += 1;
-                //stop_and_dump(registers, memory);
             }),
         },
         Instruction {
@@ -744,7 +739,6 @@ pub fn instructions() -> [Instruction; 256] {
             execute: Box::new(|registers, memory| -> () {
                 registers.l = memory.read_byte(registers.program_counter + 1);
                 registers.program_counter += 2;
-                //stop_and_dump(registers, memory);
             }),
         },
         Instruction {
@@ -912,7 +906,6 @@ pub fn instructions() -> [Instruction; 256] {
                 registers.a = registers.a.wrapping_sub(1);
                 registers.write_flag(FlagBit::Z, registers.a == 0);
                 registers.write_flag(FlagBit::N, true);
-                // TODO: no borrow from bit 4
                 registers.program_counter += 1;
             }),
         },
@@ -2071,14 +2064,11 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "XOR A",
             time_increment: TimeIncrement { m: 1, t: 4 },
             execute: Box::new(|registers, memory| -> () {
-                registers.a = registers.a ^ registers.a;
-
-                // TODO: it seems like we are supposed to write this flag?
-                // registers.write_flag(FlagBit::Z, true);
+                registers.a ^= registers.a;
+                registers.write_flag(FlagBit::Z, true); // a ^ a is always 0
                 registers.write_flag(FlagBit::N, false);
                 registers.write_flag(FlagBit::H, false);
                 registers.write_flag(FlagBit::C, false);
-
                 registers.program_counter += 1;
             }),
         },
@@ -2345,7 +2335,6 @@ pub fn instructions() -> [Instruction; 256] {
                 r.program_counter += 1;
             }),
         },
-        // ADD A,d8
         Instruction {
             mnemonic: "ADD A,d8",
             time_increment: TimeIncrement { m: 2, t: 8 },
@@ -2568,7 +2557,7 @@ pub fn instructions() -> [Instruction; 256] {
             time_increment: TimeIncrement { m: 1, t: 16 },
             execute: Box::new(|r, m| {
                 r.program_counter = m.read_word(r.stack_pointer);
-                r.stack_pointer = r.stack_pointer.wrapping_add(2); /* TODO: enable interrupts */
+                r.stack_pointer = r.stack_pointer.wrapping_add(2); // IME restored by cpu.step() post-execute (RETI opcode 0xD9)
             }),
         },
         Instruction {
@@ -2813,7 +2802,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "DI",
             time_increment: TimeIncrement { m: 1, t: 4 },
             execute: Box::new(|r, _| {
-                /* disable interrupts - stub */
+                // IME is cleared by the cpu.step() post-execute handler
                 r.program_counter += 1;
             }),
         },
@@ -2890,7 +2879,7 @@ pub fn instructions() -> [Instruction; 256] {
             mnemonic: "EI",
             time_increment: TimeIncrement { m: 1, t: 4 },
             execute: Box::new(|r, _| {
-                /* enable interrupts - stub */
+                // IME is set by the cpu.step() post-execute handler
                 r.program_counter += 1;
             }),
         },

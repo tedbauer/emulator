@@ -1,22 +1,19 @@
-// WASM frontend — items here are used by the browser build target, not the native binary.
+// WASM frontend bindings — exports the emulator to JavaScript via wasm-bindgen.
+// All items here are used by the browser build target, not the native binary.
 #![allow(dead_code)]
-// Place your existing module declarations here
 
 mod cpu;
 mod gpu;
 mod memory;
 
-// --- Imports ---
 use std::panic;
 use wasm_bindgen::prelude::*;
 
-// Bring in your emulator components
 use cpu::Cpu;
 use gpu::Gpu;
 use memory::{Memory, MemoryAccess};
 use std::collections::VecDeque;
 
-// ADD: A constant for our log capacity
 const LOG_CAPACITY: usize = 20;
 
 // Game Boy screen dimensions
@@ -90,7 +87,6 @@ impl Emulator {
                 }
                 // We have a full frame, so we can exit the loop for this tick.
 
-                // ADD: Update the tileset buffer on every completed frame
                 self.memory.generate_tileset_rgba(&mut self.tileset_buffer);
                 self.memory.generate_memory_rgba(&mut self.memory_buffer);
 
@@ -122,7 +118,6 @@ impl Emulator {
         self.pixel_buffer.as_ptr()
     }
 
-    // ADD: A new function to get a pointer to the tileset data
     #[wasm_bindgen]
     pub fn tileset_ptr(&self) -> *const u8 {
         self.tileset_buffer.as_ptr()
