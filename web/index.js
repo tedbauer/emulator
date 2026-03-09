@@ -375,17 +375,30 @@ let lastFrame = 0;
 const TARGET_FPS = 59.7;
 const FRAME_MS = 1000 / TARGET_FPS;
 
+// Pre-allocated render buffers (avoids per-frame GC pressure)
+let screenBuf    = null;  // Uint8ClampedArray
+let screenImg    = null;  // ImageData
+let tilesetBuf   = null;
+let tilesetImg   = null;
+let memmapBuf    = null;
+let memmapImg    = null;
+
 function loop(now) {
     const elapsed = now - lastFrame;
     if (elapsed >= FRAME_MS) {
         lastFrame = now - Math.min(elapsed % FRAME_MS, FRAME_MS);
         emulator.tick();
-        ctx.putImageData(new ImageData(new Uint8ClampedArray(emulator.get_framebuffer()), SCREEN_W, SCREEN_H), 0, 0);
+        screenBuf.set(emulator.get_framebuffer());
+        ctx.putImageData(screenImg, 0, 0);
         pushAudio(emulator.get_audio_samples());
-        if (visible["tileset-section"])
-            tilesetCtx.putImageData(new ImageData(new Uint8ClampedArray(emulator.get_tileset()), TILESET_W, TILESET_H), 0, 0);
-        if (visible["memmap-section"])
-            memmapCtx.putImageData(new ImageData(new Uint8ClampedArray(emulator.get_memory_map()), MEMMAP_W, MEMMAP_H), 0, 0);
+        if (visible["tileset-section"]) {
+            tilesetBuf.set(emulator.get_tileset());
+            tilesetCtx.putImageData(tilesetImg, 0, 0);
+        }
+        if (visible["memmap-section"]) {
+            memmapBuf.set(emulator.get_memory_map());
+            memmapCtx.putImageData(memmapImg, 0, 0);
+        }
         if (visible["ilog-section"])
             ilogPre.textContent = emulator.get_instruction_log();
     }
@@ -397,6 +410,13 @@ async function startEmulator(romBytes) {
     initAudio();
     if (audioCtx.state === "suspended") await audioCtx.resume();
     emulator = new Emulator(romBytes);
+    // Allocate render buffers once per emulator session
+    screenBuf  = new Uint8ClampedArray(SCREEN_W  * SCREEN_H  * 4);
+    screenImg  = new ImageData(screenBuf, SCREEN_W, SCREEN_H);
+    tilesetBuf = new Uint8ClampedArray(TILESET_W * TILESET_H * 4);
+    tilesetImg = new ImageData(tilesetBuf, TILESET_W, TILESET_H);
+    memmapBuf  = new Uint8ClampedArray(MEMMAP_W  * MEMMAP_H  * 4);
+    memmapImg  = new ImageData(memmapBuf, MEMMAP_W, MEMMAP_H);
     placeholder.classList.add("hidden");
     lastFrame = performance.now() - FRAME_MS;
     animFrame = requestAnimationFrame(loop);
