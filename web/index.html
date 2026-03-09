@@ -332,6 +332,34 @@
             flex-direction: column;
         }
 
+        /* ── Controls hint ── */
+        #controls-hint {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+            justify-content: center;
+            padding: 6px 4px 2px;
+            font-size: 0.6rem;
+            color: #888;
+            font-family: 'Menlo', 'Consolas', monospace;
+        }
+        .ctrl-key {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            white-space: nowrap;
+        }
+        .ctrl-key kbd {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-bottom: 2px solid #aaa;
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 0.58rem;
+            font-family: inherit;
+            color: #333;
+        }
+
         #screen-wrap {
             position: relative;
             border: 2px solid #111;
@@ -614,6 +642,14 @@
                             or load a .gb ROM
                         </div>
                     </div>
+                </div>
+                <div id="controls-hint">
+                    <span class="ctrl-key"><kbd>←</kbd><kbd>→</kbd> move</span>
+                    <span class="ctrl-key"><kbd>↑</kbd><kbd>↓</kbd> dpad</span>
+                    <span class="ctrl-key"><kbd>Z</kbd> A</span>
+                    <span class="ctrl-key"><kbd>X</kbd> B</span>
+                    <span class="ctrl-key"><kbd>Enter</kbd> Start</span>
+                    <span class="ctrl-key"><kbd>⇧</kbd> Select</span>
                 </div>
             </div>
 
