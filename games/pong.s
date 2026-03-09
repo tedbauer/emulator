@@ -3,14 +3,14 @@ from core import pressed, set_sprite, Button
 # ── Tiles ────────────────────────────────────────────────────────────────────
 
 tile ball:
-    .333....
-    3333....
+    ..3333..
+    .333333.
     33333333
     33333333
     33333333
     33333333
-    3333....
-    .333....
+    .333333.
+    ..3333..
 
 tile paddle:
     33333333
@@ -51,8 +51,8 @@ on vblank:
     if bx >= 152:
         vx := -1
 
-    # Top wall bounce
-    if by <= 16:
+    # Top wall bounce — threshold 2 so ball visually reaches the top edge
+    if by <= 2:
         vy := 1
 
     # Paddle collision (simple AABB)
