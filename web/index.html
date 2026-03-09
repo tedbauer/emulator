@@ -151,20 +151,6 @@
             background: #fffde7;
         }
 
-        /* ── Editor pane header: logo row + tab bar row ── */
-        #editor-header-logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 7px 12px 5px;
-            background: #111;
-            color: #c8f0d8;
-            font-size: 0.78rem;
-            font-weight: 700;
-            flex-shrink: 0;
-            border-bottom: 1px solid #222;
-        }
-
         #tab-bar-wrap {
             display: flex;
             align-items: flex-end;
@@ -178,6 +164,18 @@
 
         #tab-bar-wrap::-webkit-scrollbar {
             display: none;
+        }
+
+        #editor-logo {
+            color: #c8f0d8;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+            padding: 4px 10px 6px 4px;
+            border-right: 1px solid #333;
+            margin-right: 6px;
+            flex-shrink: 0;
+            align-self: center;
         }
 
         #tab-bar {
@@ -519,8 +517,8 @@
 
             <!-- Editor -->
             <div id="editor-pane">
-                <div id="editor-header-logo">🦐 Shrimp</div>
                 <div id="tab-bar-wrap">
+                    <span id="editor-logo">🦐 Shrimp</span>
                     <div id="tab-bar"></div>
                 </div>
                 <textarea id="code-editor" spellcheck="false"></textarea>
