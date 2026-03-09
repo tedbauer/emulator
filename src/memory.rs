@@ -1,5 +1,10 @@
 #![allow(dead_code)] // some methods are WASM-only APIs
+use crate::apu::Apu;
+#[cfg(not(target_arch = "wasm32"))]
+use std::collections::VecDeque;
 use std::fmt;
+#[cfg(not(target_arch = "wasm32"))]
+use std::sync::{Arc, Mutex};
 
 pub trait MemoryAccess {
     fn read_byte(&self, addr: u16) -> u8;
@@ -10,6 +15,9 @@ pub trait MemoryAccess {
     fn generate_memory_rgba(&self, buffer: &mut [u8]);
     /// Update joypad state. buttons/dpad: bit=0 means pressed (active-low).
     fn set_joypad(&mut self, buttons: u8, dpad: u8);
+    /// Tick APU by `cycles` T-cycles, pushing any generated samples into the queue.
+    #[cfg(not(target_arch = "wasm32"))]
+    fn tick_apu_into_queue(&mut self, cycles: u32, queue: &Arc<Mutex<VecDeque<i16>>>);
 }
 
 pub struct Memory {
@@ -18,12 +26,13 @@ pub struct Memory {
     the_rest: [u8; 49152],
     bios_enabled: bool,
     // MBC1 bank switching
-    mbc_type: u8,    // cartridge type from 0x0147 (0=ROM only, 1=MBC1)
-    rom_bank: usize, // current ROM bank for 0x4000-0x7FFF (MBC1)
+    mbc_type: u8,
+    rom_bank: usize,
     // Joypad state: 0=pressed, 1=released (active low)
     pub joypad_buttons: u8,
     pub joypad_dpad: u8,
     joypad_select: u8,
+    pub apu: Apu,
 }
 
 impl fmt::Debug for dyn MemoryAccess {
@@ -56,6 +65,7 @@ impl Memory {
             joypad_buttons: 0xFF,
             joypad_dpad: 0xFF,
             joypad_select: 0x30,
+            apu: Apu::new(),
         }
     }
 
@@ -77,7 +87,13 @@ impl Memory {
             joypad_buttons: 0xFF,
             joypad_dpad: 0xFF,
             joypad_select: 0x30,
+            apu: Apu::new(),
         }
+    }
+
+    /// Advance the APU by `cycles` T-cycles; returns a stereo sample when one is ready.
+    pub fn tick_apu(&mut self, cycles: u32) -> Option<(i16, i16)> {
+        self.apu.tick(cycles)
     }
 }
 
@@ -96,6 +112,10 @@ impl MemoryAccess for Memory {
                 0xFF
             };
             return result;
+        }
+        // APU register reads
+        if addr >= 0xFF10 && addr <= 0xFF3F {
+            return self.apu.read(addr);
         }
         let addr = addr as usize;
         if addr < self.bios.len() && self.bios_enabled {
@@ -166,6 +186,13 @@ impl MemoryAccess for Memory {
                 let dst = 0xFE00u16 + i;
                 let rest_idx = (dst as usize) - 0x8000;
                 self.the_rest[rest_idx] = byte;
+            }
+        } else if addr >= 0xFF10 && addr <= 0xFF3F {
+            // APU registers — notify APU and also write through to the_rest for readback
+            self.apu.write(addr as u16, value);
+            let rest_idx = addr - 0x8000;
+            if rest_idx < self.the_rest.len() {
+                self.the_rest[rest_idx] = value;
             }
         } else if addr < 0x10000 {
             // the_rest covers 0x8000-0xFFFF, same mapping as read_byte
@@ -256,5 +283,18 @@ impl MemoryAccess for Memory {
     fn set_joypad(&mut self, buttons: u8, dpad: u8) {
         self.joypad_buttons = buttons;
         self.joypad_dpad = dpad;
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn tick_apu_into_queue(&mut self, cycles: u32, queue: &Arc<Mutex<VecDeque<i16>>>) {
+        if let Some((l, r)) = self.apu.tick(cycles) {
+            if let Ok(mut q) = queue.lock() {
+                // Cap queue at ~2 frames of audio to avoid unbounded growth
+                if q.len() < 44_100 / 30 * 2 {
+                    q.push_back(l);
+                    q.push_back(r);
+                }
+            }
+        }
     }
 }

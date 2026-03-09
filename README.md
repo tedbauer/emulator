@@ -2,6 +2,8 @@
 
 A Game Boy emulator written in Rust.
 
+I started this in 2023, getting far enough to see the Nintendo boot. In 2026, I picked it back up and used Claude Sonnet 4.6 and Gemini 3.1 Pro (High), in the Antigravity harness. It picked up where I left off and finished the CPU, GPU, and APU to the point of running full commercial games with input and sound.
+
 ## Building
 
 Requires Rust and SDL2.
@@ -44,6 +46,7 @@ Place your ROM files in the `roms/` directory.
 
 - **CPU**: Full LR35902 instruction set with correct flag behavior
 - **GPU**: Background, Window, and Sprite (OBJ) layers; OAM DMA
+- **APU**: All 4 audio channels (square ×2, wave table, noise) with envelope, sweep, and length counters
 - **MBC1**: ROM bank switching (supports ROMs up to ~2MB)
 - **Joypad**: D-pad and buttons via keyboard
 - **BIOS**: DMG boot ROM (splash screen + header verification)
@@ -55,8 +58,9 @@ Place your ROM files in the `roms/` directory.
 src/
   cpu.rs     — LR35902 CPU: instruction table, execute/step, interrupt handling
   gpu.rs     — PPU: BG/Window/Sprite rendering, scanline timing, VBlank
+  apu.rs     — APU: square wave, wave table, noise channels; stereo mixer; DC filter
   memory.rs  — Memory map, MBC1 bank switching, OAM DMA, joypad register
-  main.rs    — SDL2 window, frame-driven main loop
+  main.rs    — SDL2 window + audio, frame-driven main loop
   lib.rs     — WASM bindings (WebAssembly frontend)
 ```
 

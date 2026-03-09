@@ -2,6 +2,7 @@
 // All items here are used by the browser build target, not the native binary.
 #![allow(dead_code)]
 
+mod apu;
 mod cpu;
 mod gpu;
 mod memory;
