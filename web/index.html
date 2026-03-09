@@ -42,7 +42,7 @@
             display: flex;
             gap: 14px;
             align-items: stretch;
-            height: 292px;
+            height: 375px;
             width: 100%;
             max-width: 908px;
         }
@@ -335,13 +335,21 @@
         /* ── Controls hint ── */
         #controls-hint {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px 10px;
-            justify-content: center;
-            padding: 6px 4px 2px;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+            padding: 10px 8px 6px;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 4px;
             font-size: 0.6rem;
             color: #888;
             font-family: 'Menlo', 'Consolas', monospace;
+        }
+        .ctrl-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         .ctrl-key {
             display: inline-flex;
@@ -473,12 +481,6 @@
             font-size: 0.75rem;
             color: #aaa;
             flex: 1;
-        }
-
-        #controls-hint {
-            font-size: 0.72rem;
-            color: #888;
-            line-height: 1.8;
         }
 
         .load-rom-btn {
@@ -644,12 +646,18 @@
                     </div>
                 </div>
                 <div id="controls-hint">
-                    <span class="ctrl-key"><kbd>←</kbd><kbd>→</kbd> move</span>
-                    <span class="ctrl-key"><kbd>↑</kbd><kbd>↓</kbd> dpad</span>
-                    <span class="ctrl-key"><kbd>Z</kbd> A</span>
-                    <span class="ctrl-key"><kbd>X</kbd> B</span>
-                    <span class="ctrl-key"><kbd>Enter</kbd> Start</span>
-                    <span class="ctrl-key"><kbd>⇧</kbd> Select</span>
+                    <div class="ctrl-row">
+                        <span class="ctrl-key"><kbd>←</kbd><kbd>→</kbd> move</span>
+                        <span class="ctrl-key"><kbd>↑</kbd><kbd>↓</kbd> d-pad</span>
+                    </div>
+                    <div class="ctrl-row">
+                        <span class="ctrl-key"><kbd>Z</kbd> A button</span>
+                        <span class="ctrl-key"><kbd>X</kbd> B button</span>
+                    </div>
+                    <div class="ctrl-row">
+                        <span class="ctrl-key"><kbd>Enter</kbd> Start</span>
+                        <span class="ctrl-key"><kbd>⇧</kbd> Select</span>
+                    </div>
                 </div>
             </div>
 
