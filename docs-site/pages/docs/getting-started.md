@@ -76,6 +76,7 @@ on vblank:
 
 - **Imports** — bring in built-in functions from `core`
 - **Tiles** — define 8×8 pixel art inline
+- **Constants** — compile-time values with `const NAME = value`
 - **Global variables** — state that persists across frames
 - **`init:`** — runs once at startup
 - **`on vblank:`** — runs every frame (~59.7 fps)

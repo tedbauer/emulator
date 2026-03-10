@@ -27,6 +27,16 @@ let flag: bool = true
 
 Variables are always global. Type is inferred from the initializer unless explicitly annotated.
 
+## Constants
+
+```
+const MAX_SPEED = 4
+const SCENE_TOWN = 0
+const TILE_SIZE = 8
+```
+
+Constants are inlined at compile time — no RAM is used. They must be integer literals. Use constants for magic numbers, state machine values, and configuration.
+
 ### Assignment
 
 ```
@@ -45,8 +55,10 @@ Use `:=` for reassignment (not `=`).
 | `+` | Add |
 | `-` | Subtract (or unary negate) |
 | `*` | Multiply |
-| `/` | Divide |
-| `%` | Modulo |
+| `/` | Divide (power-of-2 only) |
+| `%` | Modulo (power-of-2 only) |
+
+> `/` and `%` currently require the right-hand side to be a constant power of 2 (1, 2, 4, 8, 16, …). For example: `x / 8` and `frame % 4`.
 
 ### Comparison
 
