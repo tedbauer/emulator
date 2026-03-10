@@ -24,6 +24,8 @@ pub struct Resolver {
     pub tiles: HashMap<String, TileInfo>,
     /// For each user function, the ordered list of parameter names.
     pub fn_params: HashMap<String, Vec<String>>,
+    /// Compile-time constants (inlined, no WRAM allocation)
+    pub consts: HashMap<String, i32>,
     next_wram: u16,
     next_tile: u8,
 }
@@ -36,6 +38,7 @@ impl Resolver {
             vars: HashMap::new(),
             tiles: HashMap::new(),
             fn_params: HashMap::new(),
+            consts: HashMap::new(),
             next_wram: Self::WRAM_BASE,
             next_tile: 1, // tile 0 reserved as blank for BG
         }
@@ -45,6 +48,13 @@ impl Resolver {
         // Register tiles first (tile names may be used as arguments)
         for tile in &prog.tiles {
             self.register_tile(tile)?;
+        }
+        // Register constants (inlined at compile time)
+        for c in &prog.consts {
+            if self.consts.contains_key(&c.name) {
+                return Err(format!("Line {}: duplicate constant '{}'", c.line, c.name));
+            }
+            self.consts.insert(c.name.clone(), c.value);
         }
         // Register globals
         for g in &prog.globals {

@@ -33,6 +33,7 @@ pub enum TokenKind {
     Not,
     True,
     False,
+    Const,
 
     // Symbols
     Colon,
@@ -43,6 +44,7 @@ pub enum TokenKind {
     Star,
     Slash,
     Percent,
+    Arrow,  // ->
     Eq,     // =
     Walrus, // :=
     EqEq,   // ==
@@ -163,11 +165,10 @@ pub fn tokenize(src: &str) -> Result<Vec<Token>, String> {
                 '-' => {
                     if ci.peek() == Some(&'>') {
                         ci.next();
-                        // -> used in fn return types; treat as two tokens or special
-                        // For now skip (not used in codegen yet)
-                        continue;
+                        TokenKind::Arrow
+                    } else {
+                        TokenKind::Minus
                     }
-                    TokenKind::Minus
                 }
                 '*' => TokenKind::Star,
                 '/' => TokenKind::Slash,
@@ -264,6 +265,7 @@ pub fn tokenize(src: &str) -> Result<Vec<Token>, String> {
                         "i8" => TokenKind::TypeI8,
                         "u16" => TokenKind::TypeU16,
                         "bool" => TokenKind::TypeBool,
+                        "const" => TokenKind::Const,
                         _ => TokenKind::Ident(ident),
                     }
                 }

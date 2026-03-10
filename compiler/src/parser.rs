@@ -66,6 +66,7 @@ impl Parser {
             imports: vec![],
             tiles: vec![],
             globals: vec![],
+            consts: vec![],
             functions: vec![],
             init: None,
             on_vblank: None,
@@ -77,6 +78,7 @@ impl Parser {
                 TokenKind::From => prog.imports.push(self.parse_import()?),
                 TokenKind::Tile => prog.tiles.push(self.parse_tile()?),
                 TokenKind::Let => prog.globals.push(self.parse_let_decl()?),
+                TokenKind::Const => prog.consts.push(self.parse_const_decl()?),
                 TokenKind::Fn => prog.functions.push(self.parse_fn()?),
                 TokenKind::Init => {
                     self.bump(); // consume 'init'
@@ -371,8 +373,13 @@ impl Parser {
         }
         self.expect(&TokenKind::RParen)?;
 
-        // Optional return type (skipped for now — unused in Phase 1)
-        let ret = None;
+        // Optional return type: -> type
+        let ret = if self.peek() == &TokenKind::Arrow {
+            self.bump();
+            Some(self.parse_type()?)
+        } else {
+            None
+        };
 
         self.expect(&TokenKind::Colon)?;
         self.skip_newlines();
@@ -384,6 +391,35 @@ impl Parser {
             body,
             line,
         })
+    }
+
+    fn parse_const_decl(&mut self) -> Result<ConstDecl, String> {
+        let line = self.peek_line();
+        self.expect(&TokenKind::Const)?;
+        let name = if let TokenKind::Ident(n) = self.peek().clone() {
+            self.bump();
+            n
+        } else {
+            return Err(format!(
+                "Line {}: expected constant name after 'const'",
+                line
+            ));
+        };
+        self.expect(&TokenKind::Eq)?;
+        if let TokenKind::Int(v) = self.peek().clone() {
+            self.bump();
+            self.skip_newlines();
+            Ok(ConstDecl {
+                name,
+                value: v,
+                line,
+            })
+        } else {
+            Err(format!(
+                "Line {}: const requires an integer literal value",
+                line
+            ))
+        }
     }
 
     // -----------------------------------------------------------------------

@@ -5,6 +5,7 @@ pub struct Program {
     pub imports: Vec<Import>,
     pub tiles: Vec<TileDef>,
     pub globals: Vec<LetDecl>,
+    pub consts: Vec<ConstDecl>,
     pub functions: Vec<FnDef>,
     pub init: Option<Block>,
     pub on_vblank: Option<Block>,
@@ -32,6 +33,13 @@ pub struct LetDecl {
     pub name: String,
     pub ty: Option<Type>,
     pub init: Expr,
+    pub line: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct ConstDecl {
+    pub name: String,
+    pub value: i32,
     pub line: usize,
 }
 

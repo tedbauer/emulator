@@ -33,6 +33,8 @@ pub struct Codegen {
     pub tiles: HashMap<String, u8>, // tile name → index
     /// For each user function, the ordered list of parameter names.
     pub fn_params: HashMap<String, Vec<String>>,
+    /// Compile-time constants (name → value)
+    pub consts: HashMap<String, i32>,
 }
 
 impl Codegen {
@@ -49,6 +51,7 @@ impl Codegen {
                 .map(|(k, v)| (k.clone(), v.index))
                 .collect(),
             fn_params: resolver.fn_params.clone(),
+            consts: resolver.consts.clone(),
         }
     }
 
@@ -455,7 +458,9 @@ impl Codegen {
                 self.ld_a_n(if *b { 1 } else { 0 });
             }
             Expr::Ident(name, line) => {
-                if let Some(var) = self.vars.get(name).cloned() {
+                if let Some(&val) = self.consts.get(name.as_str()) {
+                    self.ld_a_n(val as u8);
+                } else if let Some(var) = self.vars.get(name).cloned() {
                     self.ld_a_mem(var.addr);
                 } else if let Some(&idx) = self.tiles.get(name.as_str()) {
                     self.ld_a_n(idx);
@@ -548,6 +553,27 @@ impl Codegen {
                             ));
                         }
                     }
+                    BinOp::Mod => {
+                        // Modulo: only constant power-of-2 supported via AND (n-1)
+                        if let Expr::Int(n, _) = rhs.as_ref() {
+                            let n = *n;
+                            if n > 0 && (n & (n - 1)) == 0 {
+                                self.gen_expr(lhs)?; // A = value
+                                self.emit(0xE6); // AND n
+                                self.emit((n - 1) as u8);
+                            } else {
+                                return Err(format!(
+                                    "Line {}: modulo by non-power-of-2 not yet supported",
+                                    line
+                                ));
+                            }
+                        } else {
+                            return Err(format!(
+                                "Line {}: modulo requires a constant divisor",
+                                line
+                            ));
+                        }
+                    }
                     _ => {
                         // Evaluate lhs → A, push; rhs → A; pop lhs into B
                         self.gen_expr(lhs)?;
@@ -603,7 +629,7 @@ impl Codegen {
                 unreachable!("Div is handled in gen_expr");
             }
             BinOp::Mod => {
-                return Err(format!("Line {}: modulo not yet supported", line));
+                unreachable!("Mod is handled in gen_expr");
             }
             _ => unreachable!(),
         }

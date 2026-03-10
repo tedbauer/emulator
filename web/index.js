@@ -354,13 +354,20 @@ tile window:
     33333333
     33333333
 
+# ── Constants ──────────────────────────────────────────
+
+const SCENE_TOWN = 0
+const SCENE_H1 = 1
+const SCENE_H2 = 2
+const MOVE_COOLDOWN = 30
+
 # ── Global state ───────────────────────────────────────
 
 let px = 80
 let py = 88
 let nx = 80
 let ny = 88
-let scene = 0
+let scene = SCENE_TOWN
 let can_go = 0
 let cooldown = 0
 
@@ -653,11 +660,11 @@ fn check_h2(cx: u8, cy: u8):
 # ── Collision dispatcher ──────────────────────────────
 
 fn try_move(mx: u8, my: u8):
-    if scene == 0:
+    if scene == SCENE_TOWN:
         check_town(mx, my)
-    if scene == 1:
+    if scene == SCENE_H1:
         check_h1(mx, my)
-    if scene == 2:
+    if scene == SCENE_H2:
         check_h2(mx, my)
 
 # ── Scene transitions ─────────────────────────────────
@@ -665,49 +672,49 @@ fn try_move(mx: u8, my: u8):
 fn check_enter():
     let tx = px / 8
     let ty = py / 8
-    if scene == 0:
+    if scene == SCENE_TOWN:
         if tx == 4:
             if ty == 7:
-                scene := 1
+                scene := SCENE_H1
                 draw_house1()
                 px := 76
                 py := 112
-                cooldown := 30
+                cooldown := MOVE_COOLDOWN
         if tx == 15:
             if ty == 7:
-                scene := 2
+                scene := SCENE_H2
                 draw_house2()
                 px := 76
                 py := 112
-                cooldown := 30
-    if scene == 1:
+                cooldown := MOVE_COOLDOWN
+    if scene == SCENE_H1:
         if ty > 15:
             if tx == 9:
-                scene := 0
+                scene := SCENE_TOWN
                 draw_town()
                 px := 32
                 py := 64
-                cooldown := 30
+                cooldown := MOVE_COOLDOWN
             if tx == 10:
-                scene := 0
+                scene := SCENE_TOWN
                 draw_town()
                 px := 32
                 py := 64
-                cooldown := 30
-    if scene == 2:
+                cooldown := MOVE_COOLDOWN
+    if scene == SCENE_H2:
         if ty > 15:
             if tx == 9:
-                scene := 0
+                scene := SCENE_TOWN
                 draw_town()
                 px := 120
                 py := 64
-                cooldown := 30
+                cooldown := MOVE_COOLDOWN
             if tx == 10:
-                scene := 0
+                scene := SCENE_TOWN
                 draw_town()
                 px := 120
                 py := 64
-                cooldown := 30
+                cooldown := MOVE_COOLDOWN
 
 # ── Main ───────────────────────────────────────────────
 
