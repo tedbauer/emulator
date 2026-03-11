@@ -57,7 +57,9 @@
         }
 
         /* Demo picker dropdown — anchored to #demo-wrap */
-        #demo-wrap { position: relative; }
+        #demo-wrap {
+            position: relative;
+        }
 
         #demo-picker {
             position: absolute;
@@ -228,8 +230,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50%       { opacity: 0.35; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.35;
+            }
         }
 
         .tab-close {
@@ -345,18 +354,21 @@
             color: #888;
             font-family: 'Menlo', 'Consolas', monospace;
         }
+
         .ctrl-row {
             display: flex;
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
         }
+
         .ctrl-key {
             display: inline-flex;
             align-items: center;
             gap: 3px;
             white-space: nowrap;
         }
+
         .ctrl-key kbd {
             background: #f0f0f0;
             border: 1px solid #ccc;
@@ -602,9 +614,11 @@
             opacity: 0.7;
             transition: opacity 0.15s;
         }
+
         .github-link:hover {
             opacity: 1;
         }
+
         .github-link svg {
             width: 16px;
             height: 16px;
@@ -619,6 +633,7 @@
             width: 100%;
             padding: 0 0 6px;
         }
+
         #title-panel .title {
             font-size: 1.1rem;
             font-weight: 600;
@@ -638,7 +653,10 @@
                     📖 Docs
                 </a>
                 <a class="github-link" href="https://github.com/tedbauer/emulator" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 20.87c-3.37.73-4.08-1.63-4.08-1.63-.55-1.4-1.34-1.77-1.34-1.77-1.1-.75.08-.73.08-.73 1.21.08 1.85 1.24 1.85 1.24 1.08 1.84 2.83 1.31 3.52 1 .1-.78.42-1.31.76-1.61-2.69-.31-5.52-1.35-5.52-6a4.68 4.68 0 0 1 1.25-3.25 4.35 4.35 0 0 1 .12-3.22s1.02-.33 3.34 1.24a11.56 11.56 0 0 1 6.08 0c2.32-1.57 3.33-1.24 3.33-1.24a4.35 4.35 0 0 1 .12 3.22 4.68 4.68 0 0 1 1.25 3.25c0 4.66-2.84 5.69-5.54 5.99.44.38.82 1.12.82 2.26l-.01 3.35c0 .31.22.7.84.57A12 12 0 0 0 12 .3"/></svg>
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 20.87c-3.37.73-4.08-1.63-4.08-1.63-.55-1.4-1.34-1.77-1.34-1.77-1.1-.75.08-.73.08-.73 1.21.08 1.85 1.24 1.85 1.24 1.08 1.84 2.83 1.31 3.52 1 .1-.78.42-1.31.76-1.61-2.69-.31-5.52-1.35-5.52-6a4.68 4.68 0 0 1 1.25-3.25 4.35 4.35 0 0 1 .12-3.22s1.02-.33 3.34 1.24a11.56 11.56 0 0 1 6.08 0c2.32-1.57 3.33-1.24 3.33-1.24a4.35 4.35 0 0 1 .12 3.22 4.68 4.68 0 0 1 1.25 3.25c0 4.66-2.84 5.69-5.54 5.99.44.38.82 1.12.82 2.26l-.01 3.35c0 .31.22.7.84.57A12 12 0 0 0 12 .3" />
+                    </svg>
                     GitHub
                 </a>
             </div>
@@ -655,6 +673,7 @@
                     <button class="sidebar-btn" id="demo-btn">🦐&nbsp; Demos ▾</button>
                     <div id="demo-picker" class="hidden">
                         <div class="picker-item" data-name="hello.s">👋&nbsp; Hello World</div>
+                        <div class="picker-item" data-name="iso.s">🔷&nbsp; Isometric</div>
                         <div class="picker-item" data-name="pong.s">🏓&nbsp; Pong</div>
                         <div class="picker-item" data-name="platformer.s">🧍&nbsp; Platformer</div>
                         <div class="picker-item" data-name="rpg.s">🏘️&nbsp; RPG</div>
@@ -676,7 +695,7 @@
                 </div>
                 <div id="editor-empty" class="hidden">
                     <div>📄</div>
-                    <div>Click <strong>＋ New</strong> or <strong>🦐 Demos ▾</strong><br/>to open a file</div>
+                    <div>Click <strong>＋ New</strong> or <strong>🦐 Demos ▾</strong><br />to open a file</div>
                 </div>
                 <div id="compile-error"></div>
             </div>
