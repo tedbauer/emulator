@@ -314,6 +314,8 @@ let wait_release = 0
 let text_pos = 0
 let text_timer = 0
 let arrow_blink = 0
+let music_tick = 0
+let music_note = 0
 
 const DIR_DOWN = 0
 const DIR_UP = 1
@@ -322,6 +324,12 @@ const DIR_RIGHT = 3
 const NPC_X = 40
 const NPC_Y = 64
 const TEXT_LEN = 18
+const MUSIC_LEN = 16
+const NOTE_DUR = 45
+
+# C pentatonic ambient melody (E4 G4 A4 C5 E5 D5 C5 A4 G4 E4 G4 C5 A4 G4 E4 C4)
+# freq_lo values
+# freq_hi values loaded inline in play_music()
 
 # ═══════════════════════════════════════════════════════
 # Drawing
@@ -403,6 +411,45 @@ fn check_near() -> bool:
                     near := 1
     return near
 
+fn play_music():
+    # C pentatonic: E4 G4 A4 C5 E5 D5 C5 A4 | G4 E4 C4 E4 G4 A4 C5 E4
+    # freq_lo, freq_hi in decimal (reg = 2048 - 131072/Hz)
+    # E4=0x673(lo=115,hi=6)  G4=0x6B2(lo=178,hi=6)  A4=0x6D6(lo=214,hi=6)
+    # C5=0x705(lo=5,hi=7)    D5=0x721(lo=33,hi=7)    E5=0x739(lo=57,hi=7)
+    # C4=0x60C(lo=12,hi=6)
+    if music_note == 0:
+        play_tone_ch2(115, 6)
+    if music_note == 1:
+        play_tone_ch2(178, 6)
+    if music_note == 2:
+        play_tone_ch2(214, 6)
+    if music_note == 3:
+        play_tone_ch2(5, 7)
+    if music_note == 4:
+        play_tone_ch2(57, 7)
+    if music_note == 5:
+        play_tone_ch2(33, 7)
+    if music_note == 6:
+        play_tone_ch2(5, 7)
+    if music_note == 7:
+        play_tone_ch2(214, 6)
+    if music_note == 8:
+        play_tone_ch2(178, 6)
+    if music_note == 9:
+        play_tone_ch2(115, 6)
+    if music_note == 10:
+        play_tone_ch2(12, 6)
+    if music_note == 11:
+        play_tone_ch2(115, 6)
+    if music_note == 12:
+        play_tone_ch2(178, 6)
+    if music_note == 13:
+        play_tone_ch2(214, 6)
+    if music_note == 14:
+        play_tone_ch2(5, 7)
+    if music_note == 15:
+        play_tone_ch2(115, 6)
+
 fn scroll_char():
     if text_pos == 0:
         print(3, 15, "H")
@@ -457,6 +504,16 @@ init:
     draw_npc()
 
 on vblank:
+    # Music sequencer
+    music_tick := music_tick + 1
+    if music_tick == 1:
+        play_music()
+    if music_tick == NOTE_DUR:
+        music_tick := 0
+        music_note := music_note + 1
+        if music_note == MUSIC_LEN:
+            music_note := 0
+
     let a_held = pressed(Button.A)
     if a_held == 0:
         wait_release := 0

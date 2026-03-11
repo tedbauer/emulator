@@ -1008,6 +1008,33 @@ impl Codegen {
                 self.add_a_n(0x80); // set trigger bit
                 self.ldh_n_a(0x14); // NR14
             }
+            // play_tone_ch2(freq_lo, freq_hi) — ambient note on Channel 2 (soft, slow decay)
+            "play_tone_ch2" => {
+                if args.len() != 2 {
+                    return Err(format!(
+                        "Line {}: play_tone_ch2 takes 2 args (freq_lo, freq_hi)",
+                        line
+                    ));
+                }
+                // Enable sound (idempotent)
+                self.ld_a_n(0x80);
+                self.ldh_n_a(0x26); // NR52 master enable
+                self.ld_a_n(0x77);
+                self.ldh_n_a(0x24); // NR50 vol max
+                self.ld_a_n(0x33);
+                self.ldh_n_a(0x25); // NR51 ch1+ch2 → both speakers
+                // Channel 2 setup (soft, slow decay)
+                self.ld_a_n(0x40); // NR21: 25% duty for softer tone
+                self.ldh_n_a(0x16);
+                self.ld_a_n(0x84); // NR22: vol=8, decay down, pace=4 (slow fade)
+                self.ldh_n_a(0x17);
+                // Frequency
+                self.gen_expr(&args[0])?;
+                self.ldh_n_a(0x18); // NR23 freq lo
+                self.gen_expr(&args[1])?;
+                self.add_a_n(0x80); // trigger
+                self.ldh_n_a(0x19); // NR24 freq hi + trigger
+            }
             // User-defined function call
             other => {
                 // Look up param names for this function
