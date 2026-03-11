@@ -3,7 +3,7 @@ template: docs.html
 title: Overview
 ---
 
-# 🦐 Shrimp
+# 🦐 Shrimp v0.2.0
 
 Shrimp is a high-level scripting language for writing Game Boy games. It compiles directly to LR35902 machine code — the CPU inside the original Game Boy — and produces standard `.gb` ROM files.
 
