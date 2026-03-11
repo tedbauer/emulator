@@ -175,3 +175,42 @@ set_bg_tile(x, y, 5)
 ```
 
 This lets you compute tile indices at runtime for animation frames, tile variations, or font rendering.
+
+---
+
+## Sound
+
+### `beep()`
+
+Plays a short blip sound (A5, ~880 Hz) with fast volume decay. Good for UI feedback.
+
+```
+beep()  # plays a quick blip
+```
+
+### `play_tone(freq_lo, freq_hi)`
+
+Plays a tone on the Game Boy's Channel 1 square wave. Takes the raw 11-bit frequency register value split into low and high bytes.
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `freq_lo` | `u8` | Low 8 bits of frequency register |
+| `freq_hi` | `u8` | High 3 bits of frequency register (0-7) |
+
+```
+play_tone(0x6B, 0x07)   # ~880 Hz (A5)
+play_tone(0x0C, 0x06)   # ~262 Hz (C4)
+```
+
+The frequency formula is: `freq_register = 2048 - (131072 / Hz)`. Common note values:
+
+| Note | Hz | freq_lo | freq_hi |
+|------|----|---------|---------|
+| C4 | 262 | 0x0C | 0x06 |
+| D4 | 294 | 0x42 | 0x06 |
+| E4 | 330 | 0x73 | 0x06 |
+| G4 | 392 | 0xB2 | 0x06 |
+| A4 | 440 | 0xD6 | 0x06 |
+| C5 | 523 | 0x05 | 0x07 |
+| E5 | 659 | 0x4E | 0x07 |
+| A5 | 880 | 0x6B | 0x07 |

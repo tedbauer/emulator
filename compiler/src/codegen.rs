@@ -953,6 +953,61 @@ impl Codegen {
                 self.ld_b_a();
                 self.call("__builtin_set_sprite");
             }
+            // beep() — play a short preset blip on Channel 1
+            "beep" => {
+                if !args.is_empty() {
+                    return Err(format!("Line {}: beep takes 0 args", line));
+                }
+                // Enable sound
+                self.ld_a_n(0x80);
+                self.ldh_n_a(0x26); // NR52 master enable
+                self.ld_a_n(0x77);
+                self.ldh_n_a(0x24); // NR50 volume max
+                self.ld_a_n(0x11);
+                self.ldh_n_a(0x25); // NR51 ch1 -> both speakers
+                                    // Channel 1 setup
+                self.ld_a_n(0x00);
+                self.ldh_n_a(0x10); // NR10 no sweep
+                self.ld_a_n(0x81);
+                self.ldh_n_a(0x11); // NR11 50% duty, length=1
+                self.ld_a_n(0xF1);
+                self.ldh_n_a(0x12); // NR12 vol=15, decay down, pace=1
+                                    // Frequency for a nice blip (~880 Hz, A5)
+                                    // freq_reg = 2048 - 131072/880 ≈ 1899 = 0x076B
+                self.ld_a_n(0x6B);
+                self.ldh_n_a(0x13); // NR13 freq low
+                self.ld_a_n(0x87);
+                self.ldh_n_a(0x14); // NR14 freq high + trigger
+            }
+            // play_tone(freq_lo, freq_hi) — play a tone on Channel 1
+            "play_tone" => {
+                if args.len() != 2 {
+                    return Err(format!(
+                        "Line {}: play_tone takes 2 args (freq_lo, freq_hi)",
+                        line
+                    ));
+                }
+                // Enable sound
+                self.ld_a_n(0x80);
+                self.ldh_n_a(0x26); // NR52 master enable
+                self.ld_a_n(0x77);
+                self.ldh_n_a(0x24); // NR50 volume max
+                self.ld_a_n(0x11);
+                self.ldh_n_a(0x25); // NR51 ch1 -> both speakers
+                                    // Channel 1 setup
+                self.ld_a_n(0x00);
+                self.ldh_n_a(0x10); // NR10 no sweep
+                self.ld_a_n(0x80);
+                self.ldh_n_a(0x11); // NR11 50% duty
+                self.ld_a_n(0xF2);
+                self.ldh_n_a(0x12); // NR12 vol=15, decay down, pace=2
+                                    // Frequency from args
+                self.gen_expr(&args[0])?; // freq_lo
+                self.ldh_n_a(0x13); // NR13
+                self.gen_expr(&args[1])?; // freq_hi (0-7)
+                self.add_a_n(0x80); // set trigger bit
+                self.ldh_n_a(0x14); // NR14
+            }
             // User-defined function call
             other => {
                 // Look up param names for this function
@@ -1118,27 +1173,23 @@ impl Codegen {
         _line: usize,
     ) -> Result<(), String> {
         let end_lbl = self.fresh_label();
-        self.gen_condition_jump(cond, &end_lbl.clone())?;
+
+        // If main condition is false, jump to the first elif/else/end
+        let mut false_lbl = self.fresh_label();
+        self.gen_condition_jump(cond, &false_lbl)?;
         self.gen_block(then)?;
+        self.jp_nn(&end_lbl); // then taken → skip rest
 
         for (elif_cond, elif_body) in elifs {
-            let skip_lbl = self.fresh_label();
-            self.jp_nn(&end_lbl);
-            self.place_label(&skip_lbl); // (unused but needed as landing)
-            let next_lbl = self.fresh_label();
-            self.gen_condition_jump(elif_cond, &next_lbl.clone())?;
+            self.place_label(&false_lbl); // land here when previous was false
+            false_lbl = self.fresh_label();
+            self.gen_condition_jump(elif_cond, &false_lbl)?;
             self.gen_block(elif_body)?;
-            self.jp_nn(&end_lbl);
-            self.place_label(&next_lbl);
+            self.jp_nn(&end_lbl); // elif taken → skip rest
         }
 
+        self.place_label(&false_lbl); // land here when all conditions were false
         if let Some(else_block) = else_ {
-            // jump over else from the end of the 'then'
-            let after_else = self.fresh_label();
-            // Wait — we already emitted then; need a jump-past-else before else starts.
-            // Restructure: emit JP end_lbl after then, then place else.
-            // This is tricky because we already placed end_lbl jump target naively above.
-            // Simple approach: emit else inline without jump; the fallthrough handles it.
             self.gen_block(else_block)?;
         }
         self.place_label(&end_lbl);
