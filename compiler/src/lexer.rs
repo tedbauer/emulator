@@ -34,6 +34,8 @@ pub enum TokenKind {
     True,
     False,
     Const,
+    Match,
+    Case,
 
     // Symbols
     Colon,
@@ -57,6 +59,10 @@ pub enum TokenKind {
     RParen,
     LBracket,
     RBracket,
+    Ampersand, // &
+    Pipe,      // |
+    Shl,       // <<
+    Shr,       // >>
 
     // Type annotations
     TypeU8,
@@ -162,6 +168,8 @@ pub fn tokenize(src: &str) -> Result<Vec<Token>, String> {
                 ',' => TokenKind::Comma,
                 '.' => TokenKind::Dot,
                 '+' => TokenKind::Plus,
+                '&' => TokenKind::Ampersand,
+                '|' => TokenKind::Pipe,
                 '-' => {
                     if ci.peek() == Some(&'>') {
                         ci.next();
@@ -201,6 +209,9 @@ pub fn tokenize(src: &str) -> Result<Vec<Token>, String> {
                     if ci.peek() == Some(&'=') {
                         ci.next();
                         TokenKind::LtEq
+                    } else if ci.peek() == Some(&'<') {
+                        ci.next();
+                        TokenKind::Shl
                     } else {
                         TokenKind::Lt
                     }
@@ -209,6 +220,9 @@ pub fn tokenize(src: &str) -> Result<Vec<Token>, String> {
                     if ci.peek() == Some(&'=') {
                         ci.next();
                         TokenKind::GtEq
+                    } else if ci.peek() == Some(&'>') {
+                        ci.next();
+                        TokenKind::Shr
                     } else {
                         TokenKind::Gt
                     }
@@ -266,6 +280,8 @@ pub fn tokenize(src: &str) -> Result<Vec<Token>, String> {
                         "u16" => TokenKind::TypeU16,
                         "bool" => TokenKind::TypeBool,
                         "const" => TokenKind::Const,
+                        "match" => TokenKind::Match,
+                        "case" => TokenKind::Case,
                         _ => TokenKind::Ident(ident),
                     }
                 }

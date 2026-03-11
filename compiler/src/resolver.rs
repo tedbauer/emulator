@@ -69,6 +69,14 @@ impl Resolver {
                 let size: u16 = match pty {
                     Type::U8 | Type::I8 | Type::Bool => 1,
                     Type::U16 => 2,
+                    Type::Array(elem, count) => {
+                        let elem_size: u16 = match elem.as_ref() {
+                            Type::U8 | Type::I8 | Type::Bool => 1,
+                            Type::U16 => 2,
+                            _ => 1,
+                        };
+                        elem_size * (*count as u16)
+                    }
                 };
                 let addr = self.next_wram;
                 self.next_wram += size;
@@ -83,40 +91,49 @@ impl Resolver {
             }
             self.fn_params.insert(func.name.clone(), param_names);
         }
-        // Register `let` declarations inside all blocks
+        // Register `let` declarations inside all blocks — with scoped names
         if let Some(init) = &prog.init {
-            self.register_block_vars(init)?;
+            self.register_block_vars_scoped(init, "__init")?;
         }
         if let Some(vblank) = &prog.on_vblank {
-            self.register_block_vars(vblank)?;
+            self.register_block_vars_scoped(vblank, "__vblank")?;
         }
         for func in &prog.functions {
-            self.register_block_vars(&func.body)?;
+            self.register_block_vars_scoped(&func.body, &func.name)?;
         }
         Ok(())
     }
 
-    fn register_block_vars(&mut self, block: &Block) -> Result<(), String> {
+    fn register_block_vars_scoped(&mut self, block: &Block, scope: &str) -> Result<(), String> {
         for stmt in block {
             match stmt {
                 Stmt::Let(decl) => {
-                    if !self.vars.contains_key(&decl.name) {
-                        self.register_var(decl)?;
+                    let mangled = format!("{}$${}", scope, decl.name);
+                    if !self.vars.contains_key(&mangled) {
+                        self.register_var_mangled(decl, &mangled)?;
                     }
                 }
                 Stmt::If {
                     then, elifs, else_, ..
                 } => {
-                    self.register_block_vars(then)?;
+                    self.register_block_vars_scoped(then, scope)?;
                     for (_, elif_block) in elifs {
-                        self.register_block_vars(elif_block)?;
+                        self.register_block_vars_scoped(elif_block, scope)?;
                     }
                     if let Some(e) = else_ {
-                        self.register_block_vars(e)?;
+                        self.register_block_vars_scoped(e, scope)?;
                     }
                 }
                 Stmt::While { body, .. } | Stmt::Loop { body, .. } => {
-                    self.register_block_vars(body)?;
+                    self.register_block_vars_scoped(body, scope)?;
+                }
+                Stmt::Match { cases, default, .. } => {
+                    for (_, case_body) in cases {
+                        self.register_block_vars_scoped(case_body, scope)?;
+                    }
+                    if let Some(d) = default {
+                        self.register_block_vars_scoped(d, scope)?;
+                    }
                 }
                 _ => {}
             }
@@ -178,14 +195,32 @@ impl Resolver {
         } else {
             infer_type(&decl.init)?
         };
-        let size: u16 = match &ty {
-            Type::U8 | Type::I8 | Type::Bool => 1,
-            Type::U16 => 2,
-        };
+        let size: u16 = type_size(&ty);
         let addr = self.next_wram;
         self.next_wram += size;
         self.vars.insert(decl.name.clone(), VarInfo { addr, ty });
         Ok(())
+    }
+
+    fn register_var_mangled(&mut self, decl: &LetDecl, mangled: &str) -> Result<(), String> {
+        let ty = if let Some(t) = &decl.ty {
+            t.clone()
+        } else {
+            infer_type(&decl.init)?
+        };
+        let size: u16 = type_size(&ty);
+        let addr = self.next_wram;
+        self.next_wram += size;
+        self.vars.insert(mangled.to_string(), VarInfo { addr, ty });
+        Ok(())
+    }
+}
+
+fn type_size(ty: &Type) -> u16 {
+    match ty {
+        Type::U8 | Type::I8 | Type::Bool => 1,
+        Type::U16 => 2,
+        Type::Array(elem, count) => type_size(elem) * (*count as u16),
     }
 }
 

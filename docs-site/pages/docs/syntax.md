@@ -37,6 +37,22 @@ const TILE_SIZE = 8
 
 Constants are inlined at compile time — no RAM is used. They must be integer literals. Use constants for magic numbers, state machine values, and configuration.
 
+## Arrays
+
+```
+let map: [u8 * 20] = 0     # 20-byte array, initialized to 0
+let grid: [u8 * 100] = 0
+```
+
+Access and assign by index:
+
+```
+map[5] := 42
+let val = map[x]
+```
+
+Arrays are stored as contiguous WRAM. Index expressions can be variables or constants. Note the syntax uses `*` for array size: `[u8 * N]`.
+
 ### Assignment
 
 ```
@@ -71,6 +87,23 @@ Use `:=` for reassignment (not `=`).
 | `>` | Greater than |
 | `>=` | Greater or equal |
 
+### Bitwise
+
+| Operator | Meaning |
+|----------|---------|
+| `&` | Bitwise AND |
+| `\|` | Bitwise OR |
+| `<<` | Shift left (constant count only) |
+| `>>` | Shift right (constant count only) |
+
+```
+let masked = flags & 3
+let high = value >> 4
+let packed = base | (1 << 2)
+```
+
+> `<<` and `>>` require a constant shift amount. For example: `x << 3` or `val >> 2`.
+
 ### Logical
 
 | Operator | Meaning |
@@ -91,6 +124,20 @@ elif x > 50:
 else:
     speed := 2
 ```
+
+### Match / Case
+
+```
+match scene:
+    case SCENE_TOWN:
+        check_town()
+    case SCENE_HOUSE:
+        check_house()
+    else:
+        pass
+```
+
+Compares one expression against multiple constants. `else:` is optional (default branch). Cleaner than chains of `if`/`elif`.
 
 ### While loop
 
@@ -121,6 +168,7 @@ fn clamp(val: u8, max: u8) -> u8:
 - Parameters must have type annotations
 - Return type is specified with `->` (optional if no return value)
 - Functions are called like: `clamp(x, 160)`
+- Local `let` variables inside functions are **scoped** — `let tx` in two different functions won't collide
 
 ## Init and VBlank
 

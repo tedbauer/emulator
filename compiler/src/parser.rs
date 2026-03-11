@@ -335,6 +335,25 @@ impl Parser {
                 self.bump();
                 Ok(Type::Bool)
             }
+            // Array type: [u8; N]
+            TokenKind::LBracket => {
+                self.bump();
+                let elem = self.parse_type()?;
+                // expect semicolon — but we don't have a Semicolon token,
+                // so we expect Ident(";") ... actually, let's just use comma or a workaround
+                // We'll abuse the fact that `;` isn't lexed. Use `,` instead: [u8, 20]
+                // Actually, let's consume tokens. The `;` would be an error token.
+                // Better approach: use `*` for size: [u8 * 20]
+                self.expect(&TokenKind::Star)?;
+                let size = if let TokenKind::Int(n) = self.peek().clone() {
+                    self.bump();
+                    n as usize
+                } else {
+                    return Err(format!("Line {}: expected array size", line));
+                };
+                self.expect(&TokenKind::RBracket)?;
+                Ok(Type::Array(Box::new(elem), size))
+            }
             other => Err(format!("Line {}: expected type, got {:?}", line, other)),
         }
     }
@@ -461,6 +480,7 @@ impl Parser {
             }
             TokenKind::If => self.parse_if(),
             TokenKind::While => self.parse_while(),
+            TokenKind::Match => self.parse_match(),
             TokenKind::Loop => {
                 self.bump();
                 self.expect(&TokenKind::Colon)?;
@@ -473,15 +493,32 @@ impl Parser {
                 self.skip_newlines();
                 Ok(Stmt::Pass)
             }
-            // Assignment: `name :=` or function call starting with an identifier
+            // Assignment: `name :=` or `name[expr] :=` or function call
             TokenKind::Ident(name) => {
-                // Peek ahead for :=
+                // Peek ahead for `:=`
                 if self.tokens.get(self.pos + 1).map(|t| &t.kind) == Some(&TokenKind::Walrus) {
                     self.bump(); // name
                     self.bump(); // :=
                     let val = self.parse_expr(0)?;
                     self.skip_newlines();
                     Ok(Stmt::Assign { name, val, line })
+                } else if self.tokens.get(self.pos + 1).map(|t| &t.kind)
+                    == Some(&TokenKind::LBracket)
+                {
+                    // name[expr] := val
+                    self.bump(); // name
+                    self.bump(); // [
+                    let index = self.parse_expr(0)?;
+                    self.expect(&TokenKind::RBracket)?;
+                    self.expect(&TokenKind::Walrus)?;
+                    let val = self.parse_expr(0)?;
+                    self.skip_newlines();
+                    Ok(Stmt::IndexAssign {
+                        array: name,
+                        index,
+                        val,
+                        line,
+                    })
                 } else {
                     // Expression statement (function call)
                     let e = self.parse_expr(0)?;
@@ -537,6 +574,54 @@ impl Parser {
         })
     }
 
+    fn parse_match(&mut self) -> Result<Stmt, String> {
+        let line = self.peek_line();
+        self.expect(&TokenKind::Match)?;
+        let expr = self.parse_expr(0)?;
+        self.expect(&TokenKind::Colon)?;
+        self.skip_newlines();
+        self.expect(&TokenKind::Indent)?;
+
+        let mut cases = vec![];
+        let mut default = None;
+
+        loop {
+            self.skip_newlines();
+            match self.peek().clone() {
+                TokenKind::Case => {
+                    self.bump();
+                    let val = self.parse_expr(0)?;
+                    self.expect(&TokenKind::Colon)?;
+                    self.skip_newlines();
+                    let body = self.parse_block()?;
+                    cases.push((val, body));
+                }
+                TokenKind::Else => {
+                    self.bump();
+                    self.expect(&TokenKind::Colon)?;
+                    self.skip_newlines();
+                    default = Some(self.parse_block()?);
+                    break;
+                }
+                TokenKind::Dedent | TokenKind::Eof => break,
+                other => {
+                    return Err(format!(
+                        "Line {}: expected 'case' or 'else' in match, got {:?}",
+                        self.peek_line(),
+                        other
+                    ));
+                }
+            }
+        }
+        self.expect(&TokenKind::Dedent)?;
+        Ok(Stmt::Match {
+            expr,
+            cases,
+            default,
+            line,
+        })
+    }
+
     fn parse_while(&mut self) -> Result<Stmt, String> {
         let line = self.peek_line();
         self.expect(&TokenKind::While)?;
@@ -563,8 +648,11 @@ impl Parser {
                 | TokenKind::LtEq
                 | TokenKind::Gt
                 | TokenKind::GtEq => (3, false),
-                TokenKind::Plus | TokenKind::Minus => (4, false),
-                TokenKind::Star | TokenKind::Slash | TokenKind::Percent => (5, false),
+                TokenKind::Pipe => (4, false),
+                TokenKind::Ampersand => (5, false),
+                TokenKind::Shl | TokenKind::Shr => (6, false),
+                TokenKind::Plus | TokenKind::Minus => (7, false),
+                TokenKind::Star | TokenKind::Slash | TokenKind::Percent => (8, false),
                 _ => break,
             };
             if prec < min_prec {
@@ -585,6 +673,10 @@ impl Parser {
                 TokenKind::Star => BinOp::Mul,
                 TokenKind::Slash => BinOp::Div,
                 TokenKind::Percent => BinOp::Mod,
+                TokenKind::Ampersand => BinOp::BitAnd,
+                TokenKind::Pipe => BinOp::BitOr,
+                TokenKind::Shl => BinOp::Shl,
+                TokenKind::Shr => BinOp::Shr,
                 _ => unreachable!(),
             };
             let next_prec = if right_assoc { prec } else { prec + 1 };
@@ -677,6 +769,17 @@ impl Parser {
                     return Ok(Expr::Call {
                         func: name,
                         args,
+                        line,
+                    });
+                }
+                // Check for array index: name[expr]
+                if self.peek() == &TokenKind::LBracket {
+                    self.bump();
+                    let index = self.parse_expr(0)?;
+                    self.expect(&TokenKind::RBracket)?;
+                    return Ok(Expr::Index {
+                        array: name,
+                        index: Box::new(index),
                         line,
                     });
                 }

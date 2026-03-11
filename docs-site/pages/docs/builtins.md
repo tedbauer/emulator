@@ -113,3 +113,65 @@ on vblank:
 ```
 
 > Scrolling wraps around at 256 pixels in both directions. The background layer scrolls independently of sprites.
+
+---
+
+## Text
+
+### `print(tx, ty, "text")`
+
+Renders a string to the background layer using a **built-in 8×8 ASCII font** (96 characters, printable ASCII 32–127).
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `tx` | `u8` | Starting tile column |
+| `ty` | `u8` | Tile row |
+| `"text"` | string literal | Text to display |
+
+```
+print(2, 4, "HELLO WORLD!")
+print(3, 8, "Score: 0")
+```
+
+> The built-in font is loaded automatically when `print()` is used. No tile definitions or imports are needed. The font occupies tiles after your user-defined tiles.
+
+---
+
+## Large Sprites
+
+### `set_sprite_16(index, x, y, top_tile, bottom_tile)`
+
+Places a 16-pixel-tall sprite using two consecutive OAM slots.
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `index` | `u8` | Sprite slot for top half (bottom = index+1) |
+| `x` | `u8` | X position |
+| `y` | `u8` | Y position of top half |
+| `top_tile` | tile name | Top 8×8 tile |
+| `bottom_tile` | tile name | Bottom 8×8 tile |
+
+```
+set_sprite_16(0, px, py, player_top, player_bottom)
+```
+
+> Uses two standard sprite slots. The bottom half is drawn 8 pixels below the top.
+
+---
+
+## Tile Expressions
+
+Tile arguments in `set_sprite()`, `set_bg_tile()`, etc. accept **any expression**, not just tile names:
+
+```
+# Tile name (resolves to its index)
+set_bg_tile(x, y, grass)
+
+# Arithmetic on tile indices
+set_bg_tile(x, y, grass + 1)
+
+# Numeric tile index directly
+set_bg_tile(x, y, 5)
+```
+
+This lets you compute tile indices at runtime for animation frames, tile variations, or font rendering.

@@ -62,6 +62,12 @@ pub enum Stmt {
         val: Expr,
         line: usize,
     },
+    IndexAssign {
+        array: String,
+        index: Expr,
+        val: Expr,
+        line: usize,
+    },
     If {
         cond: Expr,
         then: Block,
@@ -76,6 +82,12 @@ pub enum Stmt {
     },
     Loop {
         body: Block,
+        line: usize,
+    },
+    Match {
+        expr: Expr,
+        cases: Vec<(Expr, Block)>,
+        default: Option<Block>,
         line: usize,
     },
     Return(Option<Expr>, usize),
@@ -107,6 +119,11 @@ pub enum Expr {
         args: Vec<Expr>,
         line: usize,
     },
+    Index {
+        array: String,
+        index: Box<Expr>,
+        line: usize,
+    },
 }
 
 impl Expr {
@@ -117,9 +134,10 @@ impl Expr {
             | Expr::Str(_, l)
             | Expr::Ident(_, l)
             | Expr::Member(_, _, l) => *l,
-            Expr::BinOp { line, .. } | Expr::UnaryOp { line, .. } | Expr::Call { line, .. } => {
-                *line
-            }
+            Expr::BinOp { line, .. }
+            | Expr::UnaryOp { line, .. }
+            | Expr::Call { line, .. }
+            | Expr::Index { line, .. } => *line,
         }
     }
 }
@@ -139,6 +157,10 @@ pub enum BinOp {
     GtEq,
     And,
     Or,
+    BitAnd,
+    BitOr,
+    Shl,
+    Shr,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -153,4 +175,5 @@ pub enum Type {
     I8,
     U16,
     Bool,
+    Array(Box<Type>, usize),
 }

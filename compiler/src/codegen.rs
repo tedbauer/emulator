@@ -404,6 +404,20 @@ impl Codegen {
     fn add_hl_bc(&mut self) {
         self.emit(0x09);
     }
+    /// ADD HL, DE
+    fn add_hl_de(&mut self) {
+        self.emit(0x19);
+    }
+    /// SLA A (shift left arithmetic through CB prefix)
+    fn sla_a(&mut self) {
+        self.emit(0xCB);
+        self.emit(0x27);
+    }
+    /// SRL A (shift right logical through CB prefix)
+    fn srl_a(&mut self) {
+        self.emit(0xCB);
+        self.emit(0x3F);
+    }
     /// LD B, n
     fn ld_b_n(&mut self, n: u8) {
         self.emit(0x06);
@@ -466,6 +480,23 @@ impl Codegen {
                     self.ld_a_n(idx);
                 } else {
                     return Err(format!("Line {}: undefined identifier '{}'", line, name));
+                }
+            }
+            Expr::Index { array, index, line } => {
+                // array[index]: load from base_addr + index
+                if let Some(var) = self.vars.get(array).cloned() {
+                    // Evaluate index into A
+                    self.gen_expr(index)?;
+                    // LD HL, base_addr
+                    self.ld_hl_n(var.addr);
+                    // LD E, A; LD D, 0; ADD HL, DE
+                    self.ld_e_a();
+                    self.ld_d_n(0);
+                    self.add_hl_de();
+                    // LD A, (HL)
+                    self.ld_a_hl();
+                } else {
+                    return Err(format!("Line {}: undefined array '{}'", line, array));
                 }
             }
             Expr::Member(obj, field, line) => {
@@ -574,6 +605,34 @@ impl Codegen {
                             ));
                         }
                     }
+                    // Shift left: constant count only
+                    BinOp::Shl => {
+                        if let Expr::Int(count, _) = rhs.as_ref() {
+                            self.gen_expr(lhs)?;
+                            for _ in 0..*count {
+                                self.sla_a();
+                            }
+                        } else {
+                            return Err(format!(
+                                "Line {}: << requires a constant shift amount",
+                                line
+                            ));
+                        }
+                    }
+                    // Shift right: constant count only
+                    BinOp::Shr => {
+                        if let Expr::Int(count, _) = rhs.as_ref() {
+                            self.gen_expr(lhs)?;
+                            for _ in 0..*count {
+                                self.srl_a();
+                            }
+                        } else {
+                            return Err(format!(
+                                "Line {}: >> requires a constant shift amount",
+                                line
+                            ));
+                        }
+                    }
                     _ => {
                         // Evaluate lhs → A, push; rhs → A; pop lhs into B
                         self.gen_expr(lhs)?;
@@ -630,6 +689,30 @@ impl Codegen {
             }
             BinOp::Mod => {
                 unreachable!("Mod is handled in gen_expr");
+            }
+            BinOp::BitAnd => {
+                self.and_b();
+            }
+            BinOp::BitOr => {
+                self.or_b();
+            }
+            BinOp::Shl => {
+                // B = count, shift A left B times
+                // For each bit: SLA A
+                let loop_lbl = self.fresh_label();
+                let end_lbl = self.fresh_label();
+                self.ld_b_a(); // B = rhs (count)
+                self.pop_af(); // A = lhs
+                self.place_label(&loop_lbl);
+                self.ld_a_n(0); // check B
+                self.cp_n(0);
+                // Actually, simpler: pop lhs back, but B holds count.
+                // Re-approach: for constant shifts, unroll.
+                // For now, emit SLA A * count-times (only constant shifts).
+                unreachable!("Shl uses gen_expr path");
+            }
+            BinOp::Shr => {
+                unreachable!("Shr uses gen_expr path");
             }
             _ => unreachable!(),
         }
@@ -798,6 +881,78 @@ impl Codegen {
                 self.gen_expr(&args[1])?;
                 self.ldh_n_a(0x42); // SCY = FF42
             }
+            // print(tx, ty, "text") — inline text rendering
+            "print" => {
+                if args.len() != 3 {
+                    return Err(format!(
+                        "Line {}: print takes 3 args (tx, ty, string)",
+                        line
+                    ));
+                }
+                // 3rd arg must be a string literal
+                if let Expr::Str(text, _) = &args[2] {
+                    // For each character, emit set_bg_tile(tx+i, ty, font_base + char_offset)
+                    // Font tiles are loaded at the end of user tiles; font_base = number of user tiles + 1
+                    let font_base = self.tiles.len() as u8 + 1; // +1 for blank tile 0
+                    for (i, ch) in text.chars().enumerate() {
+                        // Map ASCII char to tile index: printable ASCII starts at 32
+                        let tile_idx = if ch as u8 >= 32 && (ch as u8) < 128 {
+                            font_base + (ch as u8 - 32)
+                        } else {
+                            font_base // default to space for non-printable
+                        };
+                        // Evaluate tx expression, add i
+                        self.gen_expr(&args[1])?; // ty
+                        self.ld_d_a();
+                        self.gen_expr(&args[0])?; // tx
+                        self.add_a_n(i as u8); // tx + i
+                        self.ld_e_a();
+                        self.ld_a_n(tile_idx);
+                        self.ld_b_a();
+                        self.call("__builtin_set_bg_tile");
+                    }
+                } else {
+                    return Err(format!(
+                        "Line {}: print 3rd argument must be a string literal",
+                        line
+                    ));
+                }
+            }
+            // set_sprite_16(index, x, y, top_tile, bottom_tile)
+            "set_sprite_16" => {
+                if args.len() != 5 {
+                    return Err(format!(
+                        "Line {}: set_sprite_16 takes 5 args (index, x, y, top_tile, bottom_tile)",
+                        line
+                    ));
+                }
+                // Top half: set_sprite(index, x, y, top_tile)
+                self.gen_expr(&args[2])?; // y
+                self.add_a_n(16);
+                self.ld_d_a();
+                self.gen_expr(&args[1])?; // x
+                self.add_a_n(8);
+                self.ld_e_a();
+                self.gen_expr(&args[3])?; // top_tile
+                self.ld_h_a();
+                self.gen_expr(&args[0])?; // index
+                self.ld_b_a();
+                self.call("__builtin_set_sprite");
+
+                // Bottom half: set_sprite(index+1, x, y+8, bottom_tile)
+                self.gen_expr(&args[2])?; // y
+                self.add_a_n(16 + 8); // y+8+16 (OAM offset)
+                self.ld_d_a();
+                self.gen_expr(&args[1])?; // x
+                self.add_a_n(8);
+                self.ld_e_a();
+                self.gen_expr(&args[4])?; // bottom_tile
+                self.ld_h_a();
+                self.gen_expr(&args[0])?; // index
+                self.add_a_n(1); // index + 1
+                self.ld_b_a();
+                self.call("__builtin_set_sprite");
+            }
             // User-defined function call
             other => {
                 // Look up param names for this function
@@ -891,6 +1046,64 @@ impl Codegen {
                 self.place_label(&top);
                 self.gen_block(body)?;
                 self.jp_nn(&top);
+            }
+            Stmt::Match {
+                expr,
+                cases,
+                default,
+                ..
+            } => {
+                // Desugar match: evaluate expr, compare against each case
+                self.gen_expr(expr)?;
+                self.push_af(); // save match value on stack
+
+                let end_lbl = self.fresh_label();
+                for (case_val, case_body) in cases {
+                    self.pop_af(); // restore match value
+                    self.push_af(); // keep on stack for next case
+                    self.ld_b_a(); // B = match value
+                    self.gen_expr(case_val)?; // A = case constant
+                    self.cp_b(); // compare
+                    let skip = self.fresh_label();
+                    self.jp_nz(&skip); // skip if not equal
+                    self.pop_af(); // clean stack before executing case
+                    self.gen_block(case_body)?;
+                    self.jp_nn(&end_lbl);
+                    self.place_label(&skip);
+                }
+                // No case matched — pop stack and run default
+                self.pop_af();
+                if let Some(def) = default {
+                    self.gen_block(def)?;
+                }
+                self.place_label(&end_lbl);
+            }
+            Stmt::IndexAssign {
+                array,
+                index,
+                val,
+                line,
+            } => {
+                // array[index] := val
+                if let Some(var) = self.vars.get(array).cloned() {
+                    // Evaluate val into A, push it
+                    self.gen_expr(val)?;
+                    self.push_af();
+                    // Evaluate index into A
+                    self.gen_expr(index)?;
+                    // LD HL, base_addr
+                    self.ld_hl_n(var.addr);
+                    // LD E, A; LD D, 0; ADD HL, DE
+                    self.ld_e_a();
+                    self.ld_d_n(0);
+                    self.add_hl_de();
+                    // POP AF (val)
+                    self.pop_af();
+                    // LD (HL), A
+                    self.ld_hl_a();
+                } else {
+                    return Err(format!("Line {}: undefined array '{}'", line, array));
+                }
             }
         }
         Ok(())

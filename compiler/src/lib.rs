@@ -2,6 +2,7 @@
 
 pub mod ast;
 pub mod codegen;
+pub mod font;
 pub mod lexer;
 pub mod parser;
 pub mod resolver;
@@ -37,6 +38,11 @@ pub fn compile(src: &str) -> Result<Vec<u8>, String> {
     for (_, tile_info) in &ordered_tiles {
         tile_data.extend(encode_tile(&tile_info.pixels));
     }
+    // If print() is used, append the built-in font tiles after user tiles
+    let need_print = src.contains("print(");
+    if need_print {
+        tile_data.extend(font::font_tiles());
+    }
 
     // 5. Codegen
     let mut cg = Codegen::new(GAME_CODE_BASE, &resolver);
@@ -59,13 +65,18 @@ pub fn compile(src: &str) -> Result<Vec<u8>, String> {
         }
     }
     if let Some(init_block) = &program.init {
+        // Inject local aliases for __init scope
+        let init_aliases = inject_scope_aliases(&mut cg, "__init");
         cg.gen_block(init_block)?;
+        remove_aliases(&mut cg, &init_aliases);
     }
     cg.ret();
 
     cg.place_label("__vblank_fn");
     if let Some(vblank_block) = &program.on_vblank {
+        let vblank_aliases = inject_scope_aliases(&mut cg, "__vblank");
         cg.gen_block(vblank_block)?;
+        remove_aliases(&mut cg, &vblank_aliases);
     }
     cg.ret();
 
@@ -81,6 +92,10 @@ pub fn compile(src: &str) -> Result<Vec<u8>, String> {
                 alias_names.push(pname.clone());
             }
         }
+        // Also inject local variable aliases for this function's scope
+        let local_aliases = inject_scope_aliases(&mut cg, &func.name);
+        alias_names.extend(local_aliases);
+
         cg.gen_block(&func.body)?;
         // Remove aliases to prevent leaking into other functions
         for alias in &alias_names {
@@ -107,6 +122,35 @@ pub fn compile(src: &str) -> Result<Vec<u8>, String> {
     let rom = writer.build(&game_code, &tile_data, has_vblank, vblank_addr);
 
     Ok(rom.to_vec())
+}
+
+/// Inject unmangled aliases for all scoped locals (scope$$name → name)
+fn inject_scope_aliases(cg: &mut Codegen, scope: &str) -> Vec<String> {
+    let prefix = format!("{}$$", scope);
+    let scoped: Vec<(String, resolver::VarInfo)> = cg
+        .vars
+        .iter()
+        .filter(|(k, _)| k.starts_with(&prefix))
+        .map(|(k, v)| {
+            let short = k[prefix.len()..].to_string();
+            (short, v.clone())
+        })
+        .collect();
+    let mut aliases = Vec::new();
+    for (short, info) in scoped {
+        // Don't override globals or params that are already aliased
+        if !cg.vars.contains_key(&short) {
+            cg.vars.insert(short.clone(), info);
+            aliases.push(short);
+        }
+    }
+    aliases
+}
+
+fn remove_aliases(cg: &mut Codegen, aliases: &[String]) {
+    for alias in aliases {
+        cg.vars.remove(alias);
+    }
 }
 
 /// WASM export: compile Shrimp source → Uint8Array ROM, or throw a JS Error.
