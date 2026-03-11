@@ -1023,7 +1023,7 @@ impl Codegen {
                 self.ldh_n_a(0x24); // NR50 vol max
                 self.ld_a_n(0x33);
                 self.ldh_n_a(0x25); // NR51 ch1+ch2 → both speakers
-                // Channel 2 setup (soft, slow decay)
+                                    // Channel 2 setup (soft, slow decay)
                 self.ld_a_n(0x40); // NR21: 25% duty for softer tone
                 self.ldh_n_a(0x16);
                 self.ld_a_n(0x84); // NR22: vol=8, decay down, pace=4 (slow fade)
