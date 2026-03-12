@@ -1053,29 +1053,27 @@ function initAudio() {
     gainNode.gain.value = isMuted ? 0 : volumeLevel;
 }
 
-function setVolume(v) {
-    volumeLevel = v;
-    if (gainNode && !isMuted) gainNode.gain.value = volumeLevel;
-}
-
 function toggleMute() {
     isMuted = !isMuted;
-    if (gainNode) gainNode.gain.value = isMuted ? 0 : volumeLevel;
+    if (gainNode) gainNode.gain.setValueAtTime(isMuted ? 0 : volumeLevel, audioCtx.currentTime);
     const btn = document.getElementById('mute-btn');
     if (btn) btn.textContent = isMuted ? '🔇' : '🔊';
 }
 
-// Expose to global scope (needed because index.js is an ES module)
+function setVolume(v) {
+    volumeLevel = v;
+    if (gainNode && !isMuted) gainNode.gain.setValueAtTime(volumeLevel, audioCtx.currentTime);
+}
+
+// Expose to global scope for HTML onclick attributes (ES module scope)
 window.setVolume = setVolume;
 window.toggleMute = toggleMute;
 
-// Also wire via event listeners as a fallback
-document.addEventListener('DOMContentLoaded', () => {
-    const muteBtn = document.getElementById('mute-btn');
-    const volSlider = document.getElementById('volume-slider');
-    if (muteBtn) muteBtn.addEventListener('click', toggleMute);
-    if (volSlider) volSlider.addEventListener('input', e => setVolume(parseFloat(e.target.value)));
-});
+// Wire directly — module scripts execute after DOM is parsed
+const _muteBtn = document.getElementById('mute-btn');
+const _volSlider = document.getElementById('volume-slider');
+if (_muteBtn) _muteBtn.addEventListener('click', toggleMute);
+if (_volSlider) _volSlider.addEventListener('input', e => setVolume(parseFloat(e.target.value)));
 
 function pushAudio(samples) {
     if (!audioCtx) return;
