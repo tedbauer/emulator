@@ -20,11 +20,11 @@ const runBtn = document.getElementById("run-btn");
 const newFileBtn = document.getElementById("new-file-btn");
 const demoBtn = document.getElementById("demo-btn");
 const demoPicker = document.getElementById("demo-picker");
-const compileError  = document.getElementById("compile-error");
-const tabBar        = document.getElementById("tab-bar");
-const termOutput    = document.getElementById("terminal-output");
-const editorBody    = document.getElementById("editor-body");
-const editorEmpty   = document.getElementById("editor-empty");
+const compileError = document.getElementById("compile-error");
+const tabBar = document.getElementById("tab-bar");
+const termOutput = document.getElementById("terminal-output");
+const editorBody = document.getElementById("editor-body");
+const editorEmpty = document.getElementById("editor-empty");
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
 const SCREEN_W = 160;
@@ -870,12 +870,12 @@ on vblank:
 `;
 
 // ── File system ───────────────────────────────────────────────────────────────
-let files    = [];   // [{ id, name, content }]
+let files = [];   // [{ id, name, content }]
 let activeId = null;
-let nextId   = 0;
+let nextId = 0;
 let untitledCounter = 1;
-let compilerReady   = false;
-let runningId       = null;  // id of the file currently in the emulator
+let compilerReady = false;
+let runningId = null;  // id of the file currently in the emulator
 
 function createFile(name, content = "") {
     const id = nextId++;
@@ -932,7 +932,7 @@ function renderTabs() {
     for (const f of files) {
         const tab = document.createElement("div");
         tab.className = "tab" +
-            (f.id === activeId  ? " active"  : "") +
+            (f.id === activeId ? " active" : "") +
             (f.id === runningId ? " running" : "");
 
         const nameSpan = document.createElement("span");
@@ -1023,6 +1023,9 @@ const RING_DROP_AT = RING_FRAMES * 0.8;
 
 let audioCtx = null;
 let scriptNode = null;
+let gainNode = null;
+let isMuted = false;
+let volumeLevel = 0.8;
 const ringL = new Float32Array(RING_FRAMES);
 const ringR = new Float32Array(RING_FRAMES);
 let writeHead = 0, readHead = 0;
@@ -1033,6 +1036,8 @@ function initAudio() {
     if (audioCtx) return;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SAMPLE_RATE });
     scriptNode = audioCtx.createScriptProcessor(SCRIPT_BUF, 0, 2);
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = volumeLevel;
     scriptNode.onaudioprocess = ({ outputBuffer }) => {
         const L = outputBuffer.getChannelData(0);
         const R = outputBuffer.getChannelData(1);
@@ -1043,7 +1048,21 @@ function initAudio() {
             } else { L[i] = R[i] = 0; }
         }
     };
-    scriptNode.connect(audioCtx.destination);
+    scriptNode.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    gainNode.gain.value = isMuted ? 0 : volumeLevel;
+}
+
+function setVolume(v) {
+    volumeLevel = v;
+    if (gainNode && !isMuted) gainNode.gain.value = volumeLevel;
+}
+
+function toggleMute() {
+    isMuted = !isMuted;
+    if (gainNode) gainNode.gain.value = isMuted ? 0 : volumeLevel;
+    const btn = document.getElementById('mute-btn');
+    if (btn) btn.textContent = isMuted ? '🔇' : '🔊';
 }
 
 function pushAudio(samples) {
@@ -1077,12 +1096,12 @@ const TARGET_FPS = 59.7;
 const FRAME_MS = 1000 / TARGET_FPS;
 
 // Pre-allocated render buffers (avoids per-frame GC pressure)
-let screenBuf    = null;  // Uint8ClampedArray
-let screenImg    = null;  // ImageData
-let tilesetBuf   = null;
-let tilesetImg   = null;
-let memmapBuf    = null;
-let memmapImg    = null;
+let screenBuf = null;  // Uint8ClampedArray
+let screenImg = null;  // ImageData
+let tilesetBuf = null;
+let tilesetImg = null;
+let memmapBuf = null;
+let memmapImg = null;
 
 function loop(now) {
     const elapsed = now - lastFrame;
@@ -1112,12 +1131,12 @@ async function startEmulator(romBytes) {
     if (audioCtx.state === "suspended") await audioCtx.resume();
     emulator = new Emulator(romBytes);
     // Allocate render buffers once per emulator session
-    screenBuf  = new Uint8ClampedArray(SCREEN_W  * SCREEN_H  * 4);
-    screenImg  = new ImageData(screenBuf, SCREEN_W, SCREEN_H);
+    screenBuf = new Uint8ClampedArray(SCREEN_W * SCREEN_H * 4);
+    screenImg = new ImageData(screenBuf, SCREEN_W, SCREEN_H);
     tilesetBuf = new Uint8ClampedArray(TILESET_W * TILESET_H * 4);
     tilesetImg = new ImageData(tilesetBuf, TILESET_W, TILESET_H);
-    memmapBuf  = new Uint8ClampedArray(MEMMAP_W  * MEMMAP_H  * 4);
-    memmapImg  = new ImageData(memmapBuf, MEMMAP_W, MEMMAP_H);
+    memmapBuf = new Uint8ClampedArray(MEMMAP_W * MEMMAP_H * 4);
+    memmapImg = new ImageData(memmapBuf, MEMMAP_W, MEMMAP_H);
     placeholder.classList.add("hidden");
     lastFrame = performance.now() - FRAME_MS;
     animFrame = requestAnimationFrame(loop);

@@ -740,6 +740,13 @@
         <!-- Bottom bar -->
         <div id="bottom-bar">
             <div id="status">Ready.</div>
+            <div id="audio-controls" style="display:flex;align-items:center;gap:8px;">
+                <button id="mute-btn" onclick="toggleMute()" title="Mute/Unmute"
+                    style="background:none;border:1px solid #444;border-radius:4px;color:#ccc;cursor:pointer;font-size:14px;padding:2px 7px;">🔊</button>
+                <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="0.8"
+                    oninput="setVolume(parseFloat(this.value))" title="Volume"
+                    style="width:80px;accent-color:#7a9;cursor:pointer;">
+            </div>
             <div id="debug-toggles">
                 <button class="dbg-btn" data-target="tileset-section">Tileset</button>
                 <button class="dbg-btn" data-target="memmap-section">Memory</button>
