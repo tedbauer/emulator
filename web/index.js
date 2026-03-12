@@ -1065,6 +1065,18 @@ function toggleMute() {
     if (btn) btn.textContent = isMuted ? '🔇' : '🔊';
 }
 
+// Expose to global scope (needed because index.js is an ES module)
+window.setVolume = setVolume;
+window.toggleMute = toggleMute;
+
+// Also wire via event listeners as a fallback
+document.addEventListener('DOMContentLoaded', () => {
+    const muteBtn = document.getElementById('mute-btn');
+    const volSlider = document.getElementById('volume-slider');
+    if (muteBtn) muteBtn.addEventListener('click', toggleMute);
+    if (volSlider) volSlider.addEventListener('input', e => setVolume(parseFloat(e.target.value)));
+});
+
 function pushAudio(samples) {
     if (!audioCtx) return;
     const n = samples.length >> 1;
