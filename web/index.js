@@ -1055,7 +1055,7 @@ function initAudio() {
 
 function toggleMute() {
     isMuted = !isMuted;
-    if (gainNode) gainNode.gain.setValueAtTime(isMuted ? 0 : volumeLevel, audioCtx.currentTime);
+    if (gainNode) gainNode.gain.value = isMuted ? 0 : volumeLevel;
     const btn = document.getElementById('mute-btn');
     if (btn) btn.textContent = isMuted ? '🔇' : '🔊';
 }
